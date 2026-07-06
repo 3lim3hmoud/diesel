@@ -24,6 +24,26 @@
   .status-dot.mission{ background:var(--acid); }
   .status-dot.off{ background:var(--muted); }
   .status-txt{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+  .crew-card{ cursor:pointer; transition:background .15s ease; }
+  .crew-card:hover{ background:rgba(57,255,106,0.05); }
+  .crew-card:focus-visible{ outline:2px solid var(--green); outline-offset:-2px; }
+
+  /* ---- crew detail modal (reuses .dui-overlay/.dui-modal shell, wider variant) ---- */
+  .dui-modal.crew-modal{ max-width:480px; }
+  .crew-modal .cm-top{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .crew-modal .cm-ic{ width:56px; height:56px; border-radius:12px; background:#0a120c; border:1px solid var(--green-dim); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+  .crew-modal .cm-nm{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:20px; color:#f2f3f5; }
+  .crew-modal .cm-rl{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--green); letter-spacing:1px; margin-top:2px; }
+  .crew-modal .cm-desc{ font-size:14px; color:#c9cdd3; line-height:1.6; margin-bottom:16px; }
+  .crew-modal .cm-stats{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .crew-modal .cm-stat{ flex:1; min-width:110px; background:rgba(6,10,7,0.5); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .crew-modal .cm-stat .n{ font-family:'Share Tech Mono', monospace; font-size:17px; color:var(--acid); font-weight:700; }
+  .crew-modal .cm-stat .l{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+  .crew-modal .cm-section{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted); margin:14px 0 8px; }
+  .crew-modal .cm-log{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .crew-modal .cm-log-row{ display:flex; justify-content:space-between; font-family:'Share Tech Mono', monospace; font-size:11.5px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .crew-modal .cm-rel{ font-size:13px; color:#a9afb6; line-height:1.6; font-style:italic; }
+  .crew-modal .cm-close{ margin-top:6px; width:100%; }
 </style>
 </head>
 <body>
@@ -57,68 +77,7 @@
       <p>12 OPERATIVES &middot; ALL REPORTING TO COMMAND-01</p>
     </div>
 
-    <div class="crew-grid">
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128123;</div><div><div class="nm">GHOST</div><div class="rl">INFILTRATION</div></div></div>
-        <div class="desc">Gets into rooms nobody remembers opening a door for. Never speaks on comms, only in logs.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 9</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128010;</div><div><div class="nm">VIPER</div><div class="rl">NETWORK BREACH</div></div></div>
-        <div class="desc">Finds the one open door in a hundred locked ones. Cold, exact, never rushes a job.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 8</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128225;</div><div><div class="nm">ECHO</div><div class="rl">SIGNALS</div></div></div>
-        <div class="desc">Hears every frequency before it's sent. Runs the crew's early-warning line.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 7</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128373;</div><div><div class="nm">CIPHER</div><div class="rl">CRYPTOGRAPHY</div></div></div>
-        <div class="desc">Speaks in codes even the crew needs a minute to read. Guards the vault keys.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 9</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#129497;</div><div><div class="nm">WRAITH</div><div class="rl">COUNTER-TRACE</div></div></div>
-        <div class="desc">Job is simple: make sure nobody ever finds the way back to command.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot off"></span>offline</span><span class="badge">LVL 6</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#129418;</div><div><div class="nm">RELAY</div><div class="rl">LOGISTICS</div></div></div>
-        <div class="desc">Moves files, drops, and people between safehouses without a single delay.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128171;</div><div><div class="nm">NOVA</div><div class="rl">RECRUITMENT</div></div></div>
-        <div class="desc">Finds the next name worth trusting before anyone else even notices them.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 5</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128273;</div><div><div class="nm">TALON</div><div class="rl">ENFORCEMENT</div></div></div>
-        <div class="desc">Handles the conversations nobody else on the crew wants to have.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 8</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#127752;</div><div><div class="nm">MIRAGE</div><div class="rl">DECEPTION OPS</div></div></div>
-        <div class="desc">Builds a story so convincing even the crew forgets it isn't true.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 7</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#10052;&#65039;</div><div><div class="nm">FROST</div><div class="rl">SURVEILLANCE</div></div></div>
-        <div class="desc">Watches longer and says less than anyone else on the roster.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#128293;</div><div><div class="nm">BLAZE</div><div class="rl">EXTRACTION</div></div></div>
-        <div class="desc">Gets people and files out of tight spots before the window shuts.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot off"></span>offline</span><span class="badge">LVL 7</span></div>
-      </div>
-      <div class="crew-card">
-        <div class="top"><div class="ic">&#9889;</div><div><div class="nm">PULSE</div><div class="rl">RAPID RESPONSE</div></div></div>
-        <div class="desc">First one on comms the second something on the board goes wrong.</div>
-        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
-      </div>
-    </div>
+    <div class="crew-grid" id="crewGrid"></div>
 
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
   </div>
@@ -126,6 +85,116 @@
 
 <script src="js/matrix.js"></script>
 <script>
+const CREW = [
+  { id:"ghost", icon:"&#128123;", nm:"GHOST", rl:"INFILTRATION", lvl:9, status:"on",
+    desc:"Gets into rooms nobody remembers opening a door for. Never speaks on comms, only in logs.",
+    successRate:96, log:[{t:"VAULT RUN",r:"SUCCESS"},{t:"QUIET EXIT",r:"SUCCESS"},{t:"SAFE HOUSE",r:"SUCCESS"},{t:"DEAD DROP",r:"FAILED"}],
+    relationship:"Been with DIESEL since before the crew had a name. Doesn't trust easily — trusts DIESEL completely." },
+  { id:"viper", icon:"&#128010;", nm:"VIPER", rl:"NETWORK BREACH", lvl:8, status:"on",
+    desc:"Finds the one open door in a hundred locked ones. Cold, exact, never rushes a job.",
+    successRate:91, log:[{t:"SIGNAL BREAK",r:"SUCCESS"},{t:"DOUBLE AGENT",r:"SUCCESS"},{t:"REVERSE TRACE",r:"SUCCESS"}],
+    relationship:"Recruited personally by DIESEL after a breach nobody else could pull off." },
+  { id:"echo", icon:"&#128225;", nm:"ECHO", rl:"SIGNALS", lvl:7, status:"mission",
+    desc:"Hears every frequency before it's sent. Runs the crew's early-warning line.",
+    successRate:88, log:[{t:"PHANTOM RELAY",r:"SUCCESS"},{t:"STATIC LINE",r:"SUCCESS"},{t:"BLACKOUT",r:"FAILED"}],
+    relationship:"Reports straight to DIESEL, no middle layer. The one line that never gets cut." },
+  { id:"cipher", icon:"&#128373;", nm:"CIPHER", rl:"CRYPTOGRAPHY", lvl:9, status:"on",
+    desc:"Speaks in codes even the crew needs a minute to read. Guards the vault keys.",
+    successRate:99, log:[{t:"IRON VAULT",r:"SUCCESS"},{t:"VAULT RUN",r:"SUCCESS"},{t:"DARK HARVEST",r:"SUCCESS"}],
+    relationship:"The only one who has DIESEL's full trust with the crew's financials." },
+  { id:"wraith", icon:"&#129497;", nm:"WRAITH", rl:"COUNTER-TRACE", lvl:6, status:"off",
+    desc:"Job is simple: make sure nobody ever finds the way back to command.",
+    successRate:83, log:[{t:"REVERSE TRACE",r:"SUCCESS"},{t:"GHOST WRITER",r:"SUCCESS"},{t:"OPEN DOOR",r:"FAILED"}],
+    relationship:"Keeps distance from everyone, DIESEL included. Effective precisely because of it." },
+  { id:"relay", icon:"&#129418;", nm:"RELAY", rl:"LOGISTICS", lvl:6, status:"on",
+    desc:"Moves files, drops, and people between safehouses without a single delay.",
+    successRate:94, log:[{t:"DEAD DROP",r:"SUCCESS"},{t:"SAFE HOUSE",r:"SUCCESS"},{t:"NIGHT MARKET",r:"SUCCESS"}],
+    relationship:"Been on every extraction DIESEL has ever called. Never missed a pickup window." },
+  { id:"nova", icon:"&#128171;", nm:"NOVA", rl:"RECRUITMENT", lvl:5, status:"mission",
+    desc:"Finds the next name worth trusting before anyone else even notices them.",
+    successRate:79, log:[{t:"RECRUIT",r:"SUCCESS"},{t:"RECRUIT",r:"SUCCESS"},{t:"RECRUIT",r:"FAILED"}],
+    relationship:"Brought in three of the twelve units currently on the roster, all still active." },
+  { id:"talon", icon:"&#128273;", nm:"TALON", rl:"ENFORCEMENT", lvl:8, status:"on",
+    desc:"Handles the conversations nobody else on the crew wants to have.",
+    successRate:97, log:[{t:"FALSE FLAG",r:"SUCCESS"},{t:"CLEAN SWEEP",r:"SUCCESS"},{t:"BLACKOUT",r:"SUCCESS"}],
+    relationship:"DIESEL's answer whenever a problem needs to be closed quietly and permanently." },
+  { id:"mirage", icon:"&#127752;", nm:"MIRAGE", rl:"DECEPTION OPS", lvl:7, status:"mission",
+    desc:"Builds a story so convincing even the crew forgets it isn't true.",
+    successRate:90, log:[{t:"FALSE FLAG",r:"SUCCESS"},{t:"LONG CON",r:"SUCCESS"},{t:"SILENT AUCTION",r:"SUCCESS"}],
+    relationship:"Runs every long con DIESEL greenlights personally — nothing goes out without sign-off." },
+  { id:"frost", icon:"&#10052;&#65039;", nm:"FROST", rl:"SURVEILLANCE", lvl:6, status:"on",
+    desc:"Watches longer and says less than anyone else on the roster.",
+    successRate:92, log:[{t:"REVERSE TRACE",r:"SUCCESS"},{t:"NIGHT MARKET",r:"SUCCESS"},{t:"STATIC LINE",r:"SUCCESS"}],
+    relationship:"Flags anything unusual straight to DIESEL before it reaches the rest of the board." },
+  { id:"blaze", icon:"&#128293;", nm:"BLAZE", rl:"EXTRACTION", lvl:7, status:"off",
+    desc:"Gets people and files out of tight spots before the window shuts.",
+    successRate:85, log:[{t:"QUIET EXIT",r:"SUCCESS"},{t:"DEAD DROP",r:"SUCCESS"},{t:"PHANTOM RELAY",r:"FAILED"}],
+    relationship:"Pulled DIESEL out of a burned block personally, once. Neither of them talks about it." },
+  { id:"pulse", icon:"&#9889;", nm:"PULSE", rl:"RAPID RESPONSE", lvl:6, status:"on",
+    desc:"First one on comms the second something on the board goes wrong.",
+    successRate:89, log:[{t:"SIGNAL BREAK",r:"SUCCESS"},{t:"BLACKOUT",r:"SUCCESS"},{t:"GHOST WRITER",r:"SUCCESS"}],
+    relationship:"DIESEL's first call in any emergency. Never once been unreachable." }
+];
+
+const STATUS_LABEL = { on:"online", mission:"on mission", off:"offline" };
+
+function renderCrew(){
+  const grid = document.getElementById('crewGrid');
+  grid.innerHTML = CREW.map(c => `
+    <div class="crew-card" tabindex="0" role="button" aria-label="View ${c.nm} details"
+      onclick="openCrewModal('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCrewModal('${c.id}');}">
+      <div class="top"><div class="ic">${c.icon}</div><div><div class="nm">${c.nm}</div><div class="rl">${c.rl}</div></div></div>
+      <div class="desc">${c.desc}</div>
+      <div class="meta"><span class="status-txt"><span class="status-dot ${c.status}"></span>${STATUS_LABEL[c.status]}</span><span class="badge">LVL ${c.lvl}</span></div>
+    </div>
+  `).join('');
+}
+
+function openCrewModal(id){
+  const c = CREW.find(x => x.id === id);
+  if(!c) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'dui-overlay';
+  overlay.innerHTML = `
+    <div class="dui-modal crew-modal" role="dialog" aria-modal="true">
+      <div class="cm-top">
+        <div class="cm-ic">${c.icon}</div>
+        <div>
+          <div class="cm-nm">${c.nm}</div>
+          <div class="cm-rl">${c.rl} &middot; LVL ${c.lvl} &middot; ${STATUS_LABEL[c.status]}</div>
+        </div>
+      </div>
+      <div class="cm-desc">${c.desc}</div>
+      <div class="cm-stats">
+        <div class="cm-stat"><div class="n">${c.successRate}%</div><div class="l">SUCCESS RATE</div></div>
+        <div class="cm-stat"><div class="n">${c.log.length}</div><div class="l">LOGGED OPS</div></div>
+        <div class="cm-stat"><div class="n">LVL ${c.lvl}</div><div class="l">CLEARANCE</div></div>
+      </div>
+      <div class="cm-section">// RECENT MISSION LOG</div>
+      <div class="cm-log">
+        ${c.log.map(l => `<div class="cm-log-row"><span>${l.t}</span><span class="badge ${l.r === 'SUCCESS' ? 'acid' : 'warn'}">${l.r}</span></div>`).join('')}
+      </div>
+      <div class="cm-section">// RELATIONSHIP TO COMMAND</div>
+      <div class="cm-rel">${c.relationship}</div>
+      <button class="btn cm-close" data-a="close">CLOSE</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('in'));
+
+  const close = () => {
+    overlay.classList.remove('in');
+    overlay.classList.add('out');
+    setTimeout(() => overlay.remove(), 200);
+  };
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay || e.target.closest('[data-a="close"]')) close();
+  });
+  overlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') close(); });
+}
+
+renderCrew();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
 }

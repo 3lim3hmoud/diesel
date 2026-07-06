@@ -34,7 +34,7 @@
   <div class="browser-chrome">
     <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/missions</div>
-    <div class="sys-tag">24 OPS</div>
+    <div class="sys-tag" id="opsTag">24 OPS</div>
   </div>
 
   <div class="page">
@@ -53,7 +53,7 @@
 
     <div class="subhead">
       <h1>// MISSION BOARD</h1>
-      <p>750 MISSIONS CLOSED TO DATE &middot; 24 CURRENT OPS BELOW &middot; CLAIM TO ASSIGN YOURSELF</p>
+      <p><span id="closedCount">750</span> MISSIONS CLOSED TO DATE &middot; <span id="activeCount">24</span> CURRENT OPS BELOW &middot; CLAIM TO ASSIGN YOURSELF</p>
     </div>
 
     <div class="filters">
@@ -74,44 +74,11 @@
 
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
+<script src="js/missions-data.js"></script>
+<script src="js/achievements-data.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script>
-const MISSIONS = [
-  { id:"ghost_protocol", title:"GHOST PROTOCOL", brief:"Vanish without a trace across three relay nodes before the window closes.", reward:"$1,200", diff:"HIGH", base:"active" },
-  { id:"signal_break", title:"SIGNAL BREAK", brief:"Intercept a rival broadcast and swap it for our own before anyone notices.", reward:"$850", diff:"MED", base:"active" },
-  { id:"vault_run", title:"VAULT RUN", brief:"Recover an encrypted drive from a burned safehouse. Commander clearance only.", reward:"$3,000", diff:"EXTREME", base:"locked" },
-  { id:"clean_sweep", title:"CLEAN SWEEP", brief:"Wipe the logs of node GRID-77 before sunrise.", reward:"$600", diff:"MED", base:"completed" },
-  { id:"dead_drop", title:"DEAD DROP", brief:"Move a package through three anonymous hands without a single hand knowing the rest.", reward:"$400", diff:"LOW", base:"active" },
-  { id:"reverse_trace", title:"REVERSE TRACE", brief:"Find out who's been trying to trace command — and how close they got.", reward:"$950", diff:"HIGH", base:"active" },
-  { id:"silent_auction", title:"SILENT AUCTION", brief:"Win a bid on the black market without revealing who's bidding.", reward:"$1,100", diff:"HIGH", base:"active" },
-  { id:"blackout", title:"BLACKOUT", brief:"Take a rival's forum offline for six hours, clean and quiet.", reward:"$750", diff:"MED", base:"completed" },
-  { id:"ghost_writer", title:"GHOST WRITER", brief:"Plant a false trail three layers deep for anyone chasing this node.", reward:"$500", diff:"MED", base:"active" },
-  { id:"recruit", title:"RECRUIT", brief:"Bring a new operative into the crew. Vetted, quiet, loyal.", reward:"$300", diff:"LOW", base:"active" },
-  { id:"double_agent", title:"DOUBLE AGENT", brief:"Confirm a leak inside a rival crew. Commander clearance only.", reward:"$2,500", diff:"EXTREME", base:"locked" },
-  { id:"long_con", title:"LONG CON", brief:"Hold a false identity for thirty days straight without a single slip.", reward:"$1,000", diff:"HIGH", base:"active" },
-  { id:"safe_house", title:"SAFE HOUSE", brief:"Secure a new base before the old one is found.", reward:"$450", diff:"MED", base:"completed" },
-  { id:"final_signal", title:"FINAL SIGNAL", brief:"The mission nobody talks about until it's already done.", reward:"???", diff:"???", base:"locked" },
-  { id:"phantom_relay", title:"PHANTOM RELAY", brief:"Route a signal through five dead nodes without a single drop.", reward:"$700", diff:"MED", base:"active" },
-  { id:"iron_vault", title:"IRON VAULT", brief:"Crack a rumor loose from a vault nobody's opened in years.", reward:"$1,800", diff:"HIGH", base:"active" },
-  { id:"quiet_exit", title:"QUIET EXIT", brief:"Get a crew member out of a burned city block clean.", reward:"$550", diff:"MED", base:"active" },
-  { id:"false_flag", title:"FALSE FLAG", brief:"Make a rival crew take the blame for something they didn't do.", reward:"$900", diff:"HIGH", base:"active" },
-  { id:"night_market", title:"NIGHT MARKET", brief:"Move product through the night market without a name attached.", reward:"$1,300", diff:"HIGH", base:"active" },
-  { id:"static_line", title:"STATIC LINE", brief:"Keep a dead line looking alive for one more week.", reward:"$350", diff:"LOW", base:"active" },
-  { id:"second_skin", title:"SECOND SKIN", brief:"Hold a borrowed identity through a full audit without a crack showing.", reward:"$1,600", diff:"HIGH", base:"active" },
-  { id:"dark_harvest", title:"DARK HARVEST", brief:"A long-run operation years in the making. Commander clearance only.", reward:"$2,000", diff:"EXTREME", base:"locked" },
-  { id:"open_door", title:"OPEN DOOR", brief:"Leave one door unlocked for a friend, lock everything else behind it.", reward:"$250", diff:"LOW", base:"completed" },
-  { id:"last_word", title:"LAST WORD", brief:"The mission that ends every other mission on this board.", reward:"???", diff:"???", base:"locked" },
-];
-
-function statusOf(m){
-  if(DieselState.isCompleted(m.id)) return 'completed';
-  if(m.base === 'completed') return 'completed';
-  if(m.base === 'locked') return 'locked';
-  if(DieselState.isClaimed(m.id)) return 'claimed';
-  return 'active';
-}
-
 function badgeFor(status){
   const map = {
     active: '<span class="badge">ACTIVE</span>',
@@ -127,8 +94,14 @@ let currentFilter = 'all';
 function render(){
   const list = document.getElementById('missionList');
   list.innerHTML = '';
+
+  const counts = missionCounts();
+  document.getElementById('opsTag').textContent = counts.active + ' OPS';
+  document.getElementById('activeCount').textContent = counts.active;
+  document.getElementById('closedCount').textContent = 750 + DieselState.get().completedMissions.length;
+
   MISSIONS.forEach(m => {
-    const status = statusOf(m);
+    const status = missionStatusOf(m);
     if(currentFilter !== 'all' && currentFilter !== status) return;
 
     const card = document.createElement('div');
@@ -167,11 +140,19 @@ function claim(id){
 
 function complete(id){
   const m = MISSIONS.find(x => x.id === id);
-  const result = DieselState.completeMission(id, m ? m.diff : null);
+  const result = DieselState.completeMission(id, m ? m.diff : null, m ? m.reward : null, m ? m.title : id);
   if(result.leveledUp) DieselSound.levelUp();
   else DieselSound.success();
   render();
   showXpToast(result);
+  if(result.tx){
+    setTimeout(() => DieselUI.toast(`+$${result.tx.amount.toLocaleString()} added to wallet`, { kind:'ok' }), result.leveledUp ? 900 : 600);
+  }
+  if(result.newAchievements && result.newAchievements.length){
+    result.newAchievements.forEach((a, i) => {
+      setTimeout(() => DieselUI.toast(`Achievement unlocked: ${a.name}`, { kind:'warn', duration:2600 }), 1300 + i * 700);
+    });
+  }
 }
 
 function showXpToast(result){

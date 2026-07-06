@@ -84,12 +84,12 @@
     <div class="balance-panel">
       <div class="balance-main">
         <div class="lbl">TOTAL BALANCE</div>
-        <div class="amt"><span>$</span>70,000</div>
+        <div class="amt" id="balanceAmt"><span>$</span>70,000</div>
       </div>
       <div class="balance-sub">
-        <div class="item"><div class="n">+$11,700</div><div class="l">TOTAL IN</div></div>
-        <div class="item"><div class="n">-$6,000</div><div class="l">TOTAL OUT</div></div>
-        <div class="item"><div class="n">$10,000</div><div class="l">LARGEST PAYOUT</div></div>
+        <div class="item"><div class="n" id="totalIn">+$11,700</div><div class="l">TOTAL IN</div></div>
+        <div class="item"><div class="n" id="totalOut">-$6,000</div><div class="l">TOTAL OUT</div></div>
+        <div class="item"><div class="n" id="largestPayout">$10,000</div><div class="l">LARGEST PAYOUT</div></div>
       </div>
     </div>
 
@@ -118,6 +118,12 @@
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script>
+/* Historical starting balance before the ledger below — kept so the displayed
+   total lines up with the previous static figure ($70,000) when no new
+   mission payouts have happened yet. Everything from here down is computed,
+   not hand-typed, so it can never drift out of sync with the transaction list. */
+const STARTING_BALANCE = 63450;
+
 const TRANSACTIONS = [
   { title:"UNDERGROUND MATCH — WIN", desc:"Off-book fight, no sanctioning body, no ref. Purse paid out in cash the same night, no questions asked.", amount:10000, dir:"in", date:"1 year ago", tag:"risk" },
   { title:"CLEAN SWEEP — CONTRACT PAYOUT", desc:"Node GRID-77 logs wiped clean before sunrise. Contract closed and settled.", amount:600, dir:"in", date:"2 years ago", tag:"mission" },
@@ -161,6 +167,11 @@ function badgeFor(tag){
 
 let currentFilter = 'all';
 
+function allTransactions(){
+  // Newest dynamic (mission-payout) transactions first, then the historical ledger.
+  return [...DieselState.get().transactions, ...TRANSACTIONS];
+}
+
 function matchesFilter(t){
   if(currentFilter === 'all') return true;
   if(currentFilter === 'in') return t.dir === 'in';
@@ -169,11 +180,19 @@ function matchesFilter(t){
   return true;
 }
 
+function renderBalance(){
+  const totals = DieselState.walletTotals(TRANSACTIONS, STARTING_BALANCE);
+  document.getElementById('balanceAmt').innerHTML = '<span>$</span>' + Math.round(totals.balance).toLocaleString();
+  document.getElementById('totalIn').textContent = '+$' + totals.totalIn.toLocaleString();
+  document.getElementById('totalOut').textContent = '-$' + totals.totalOut.toLocaleString();
+  document.getElementById('largestPayout').textContent = '$' + totals.largest.toLocaleString();
+}
+
 function renderTx(){
   const list = document.getElementById('txList');
   list.innerHTML = '';
   let shown = 0;
-  TRANSACTIONS.forEach(t => {
+  allTransactions().forEach(t => {
     if(!matchesFilter(t)) return;
     shown++;
     const div = document.createElement('div');
@@ -221,6 +240,7 @@ function filterTx(f, btn){
   renderTx();
 }
 
+renderBalance();
 renderTx();
 renderFights();
 
