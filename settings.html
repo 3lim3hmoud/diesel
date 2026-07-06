@@ -180,6 +180,7 @@
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
 <script>
 function refreshUI(){
   const s = DieselState.get();
@@ -227,19 +228,24 @@ function importLog(evt){
   const reader = new FileReader();
   reader.onload = () => {
     const ok = DieselState.importState(reader.result);
-    if(ok){ DieselSound.success(); DieselTheme.apply(DieselState.get().accent); refreshUI(); }
-    else { DieselSound.alert(); alert('Invalid command log file.'); }
+    if(ok){ DieselSound.success(); DieselTheme.apply(DieselState.get().accent); refreshUI(); DieselUI.toast('Command log restored', { kind:'ok' }); }
+    else { DieselSound.alert(); DieselUI.toast('Invalid command log file', { kind:'err' }); }
     evt.target.value = '';
   };
   reader.readAsText(file);
 }
 
-function resetProgress(){
-  if(!confirm('This wipes rank, XP, missions, alerts, messages and preferences on this device. This cannot be undone. Continue?')) return;
+async function resetProgress(){
+  const confirmed = await DieselUI.confirm(
+    'This wipes rank, XP, missions, alerts, messages and preferences on this device. This cannot be undone. Continue?',
+    { title: 'RESET ALL PROGRESS', okLabel: 'WIPE IT', cancelLabel: 'CANCEL' }
+  );
+  if(!confirmed) return;
   DieselSound.alert();
   DieselState.resetProgress();
   DieselTheme.apply('green');
   refreshUI();
+  DieselUI.toast('All progress reset', { kind:'warn' });
 }
 
 refreshUI();

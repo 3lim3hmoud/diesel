@@ -253,6 +253,7 @@
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
 <script>
 function refreshUI(){
   const s = DieselState.get();
@@ -287,14 +288,25 @@ function refreshUI(){
   }
 }
 
-function toggleLockdown(){ DieselSound.toggle(); DieselState.toggleLockdown(); refreshUI(); }
-function sendBroadcast(){ DieselSound.send(); DieselState.broadcast(); refreshUI(); }
+function toggleLockdown(){
+  DieselSound.toggle();
+  const on = DieselState.toggleLockdown();
+  refreshUI();
+  DieselUI.toast(on ? 'Lockdown engaged \u2014 node sealed' : 'Lockdown disengaged \u2014 node open', { kind: on ? 'warn' : 'ok' });
+}
+function sendBroadcast(){
+  DieselSound.send();
+  const n = DieselState.broadcast();
+  refreshUI();
+  DieselUI.toast(`Broadcast #${n} sent to all units`, { kind:'info' });
+}
 function toggleSpotlight(){
   DieselSound.toggle();
   const s = DieselState.get();
   s.spotlight = !s.spotlight;
   DieselState.save(s);
   refreshUI();
+  DieselUI.toast(s.spotlight ? 'Spotlight mode enabled' : 'Spotlight mode disabled', { kind:'ok' });
 }
 function toggleSound(){
   const on = DieselState.toggleSound();
@@ -314,6 +326,7 @@ function exportLog(){
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  DieselUI.toast('Command log exported', { kind:'ok' });
 }
 
 function importLog(evt){
@@ -322,8 +335,8 @@ function importLog(evt){
   const reader = new FileReader();
   reader.onload = () => {
     const ok = DieselState.importState(reader.result);
-    if(ok){ DieselSound.success(); refreshUI(); }
-    else { DieselSound.alert(); alert('Invalid command log file.'); }
+    if(ok){ DieselSound.success(); refreshUI(); DieselUI.toast('Command log restored', { kind:'ok' }); }
+    else { DieselSound.alert(); DieselUI.toast('Invalid command log file', { kind:'err' }); }
     evt.target.value = '';
   };
   reader.readAsText(file);

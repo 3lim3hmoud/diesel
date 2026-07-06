@@ -75,6 +75,7 @@
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
 <script>
 const MISSIONS = [
   { id:"ghost_protocol", title:"GHOST PROTOCOL", brief:"Vanish without a trace across three relay nodes before the window closes.", reward:"$1,200", diff:"HIGH", base:"active" },
@@ -161,6 +162,7 @@ function claim(id){
   DieselSound.toggle();
   DieselState.claimMission(id);
   render();
+  DieselUI.toast('Mission claimed \u2014 get to it', { kind:'info' });
 }
 
 function complete(id){
@@ -173,13 +175,12 @@ function complete(id){
 }
 
 function showXpToast(result){
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(10,18,12,0.95);border:1px solid var(--green-dim);color:var(--green);font-family:"Share Tech Mono",monospace;font-size:12.5px;letter-spacing:1px;padding:12px 20px;border-radius:8px;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,0.5);text-align:center;';
-  toast.textContent = result.leveledUp
-    ? `+${result.gained} XP \u00b7 RANK UP \u2192 ${result.after.label} (TIER ${result.after.tier})`
-    : `+${result.gained} XP`;
-  document.body.appendChild(toast);
-  setTimeout(() => { toast.style.transition = 'opacity .4s ease'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
+  DieselUI.toast(
+    result.leveledUp
+      ? `+${result.gained} XP \u00b7 RANK UP \u2192 ${result.after.label} (TIER ${result.after.tier})`
+      : `+${result.gained} XP`,
+    { kind: result.leveledUp ? 'warn' : 'ok', duration: result.leveledUp ? 2800 : 1800 }
+  );
 }
 
 function filterMissions(f, btn){
