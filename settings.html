@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Settings</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .settings-section{ padding:22px 28px; border-bottom:1px solid var(--line); }
+  .settings-section:last-of-type{ border-bottom:none; }
+  .settings-section h3{
+    font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:2px; color:var(--green);
+    margin:0 0 4px; display:flex; align-items:center; gap:8px;
+  }
+  .settings-section h3::before{ content:"//"; color:var(--muted); }
+  .settings-section .hint{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin:0 0 16px; letter-spacing:.5px; }
+
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:10px 0; border-bottom:1px dashed var(--line); }
+  .row:last-child{ border-bottom:none; }
+  .ctrl-name{ font-family:'Share Tech Mono', monospace; font-size:12.5px; color:#dfe2e6; }
+  .ctrl-desc{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .switch{ position:relative; width:46px; height:24px; background:#181a20; border-radius:20px; border:1px solid var(--line); cursor:pointer; flex-shrink:0; }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--muted); transition:transform .15s ease, background .15s ease; }
+  .switch.on{ background:rgba(57,255,106,0.15); border-color:var(--green-dim); }
+  .switch.on .knob{ transform:translateX(22px); background:var(--green); }
+
+  .accent-grid{ display:flex; gap:12px; flex-wrap:wrap; }
+  .accent-card{
+    flex:1; min-width:140px; background:rgba(10,18,12,0.7); border:1px solid var(--line); border-radius:8px;
+    padding:14px; cursor:pointer; transition:border-color .15s ease, background .15s ease;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .accent-card:hover{ border-color:var(--green-dim); }
+  .accent-card.selected{ border-color:var(--green); background:rgba(57,255,106,0.05); }
+  .accent-card .swatch-row{ display:flex; gap:6px; }
+  .accent-card .sw{ width:20px; height:20px; border-radius:6px; }
+  .accent-card .lbl{ font-family:'Share Tech Mono', monospace; font-size:11.5px; letter-spacing:1px; color:#dfe2e6; }
+  .accent-card .check{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--green); letter-spacing:1px; opacity:0; }
+  .accent-card.selected .check{ opacity:1; }
+
+  .danger-zone{ border:1px solid #3a1414; border-radius:8px; padding:16px 18px; background:rgba(255,59,59,0.03); }
+  .danger-zone .ctrl-name{ color:var(--warn); }
+
+  .about-line{ font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--muted); padding:4px 0; display:flex; justify-content:space-between; gap:10px; }
+  .about-line b{ color:#dfe2e6; font-weight:400; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/settings</div>
+    <div class="sys-tag">CONFIG</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html" class="active">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// SETTINGS</h1>
+      <p>APPEARANCE, INTERFACE &amp; SAVE DATA &middot; NODE COMMAND-01</p>
+    </div>
+
+    <div class="settings-section">
+      <h3>APPEARANCE</h3>
+      <p class="hint">Pick the accent color used across every panel, badge and glow on the node.</p>
+      <div class="accent-grid" id="accentGrid">
+        <div class="accent-card" data-accent="green" onclick="setAccent('green')">
+          <div class="swatch-row"><span class="sw" style="background:#39ff6a"></span><span class="sw" style="background:#0f4d24"></span></div>
+          <div class="lbl">MATRIX GREEN</div>
+          <div class="check">&#10003; ACTIVE</div>
+        </div>
+        <div class="accent-card" data-accent="cyan" onclick="setAccent('cyan')">
+          <div class="swatch-row"><span class="sw" style="background:#39d6ff"></span><span class="sw" style="background:#0f3d4d"></span></div>
+          <div class="lbl">CYAN BREACH</div>
+          <div class="check">&#10003; ACTIVE</div>
+        </div>
+        <div class="accent-card" data-accent="crimson" onclick="setAccent('crimson')">
+          <div class="swatch-row"><span class="sw" style="background:#ff3b57"></span><span class="sw" style="background:#4d0f18"></span></div>
+          <div class="lbl">CRIMSON OPS</div>
+          <div class="check">&#10003; ACTIVE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>INTERFACE</h3>
+      <p class="hint">Controls how the node sounds and behaves while you use it.</p>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">INTERFACE SOUND</div>
+          <div class="ctrl-desc">short terminal blips on key actions</div>
+        </div>
+        <div class="switch" id="soundSwitch" role="switch" tabindex="0" onclick="toggleSound()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSound();}"><div class="knob"></div></div>
+      </div>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">REDUCED MOTION</div>
+          <div class="ctrl-desc">follows your OS/browser accessibility setting — the matrix rain and animations turn off automatically when enabled</div>
+        </div>
+        <span class="badge muted" id="motionBadge">SYSTEM</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>SAVE DATA</h3>
+      <p class="hint">Everything on this node — rank, XP, missions, alerts, messages — lives in this browser only.</p>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">EXPORT COMMAND LOG</div>
+          <div class="ctrl-desc">download your full save state as a JSON file</div>
+        </div>
+        <button class="btn" onclick="exportLog()">EXPORT</button>
+      </div>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">IMPORT COMMAND LOG</div>
+          <div class="ctrl-desc">restore a save state from a previously exported file</div>
+        </div>
+        <button class="btn" onclick="document.getElementById('importFile').click()">IMPORT</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importLog(event)">
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>DANGER ZONE</h3>
+      <div class="danger-zone">
+        <div class="row" style="border-bottom:none; padding:0;">
+          <div>
+            <div class="ctrl-name">RESET ALL PROGRESS</div>
+            <div class="ctrl-desc">wipes rank, XP, missions, alerts, messages and preferences on this device. Cannot be undone.</div>
+          </div>
+          <button class="btn danger" onclick="resetProgress()">RESET</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>ABOUT</h3>
+      <div class="about-line"><span>System</span><b>DIESEL // Command System</b></div>
+      <div class="about-line"><span>Build</span><b id="buildTag">v1.1</b></div>
+      <div class="about-line"><span>Storage</span><b>Local browser storage (localStorage) only — nothing leaves this device</b></div>
+      <div class="about-line"><span>Nature</span><b>Fictional persona &middot; roleplay dashboard for entertainment</b></div>
+    </div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+function refreshUI(){
+  const s = DieselState.get();
+
+  document.querySelectorAll('.accent-card').forEach(card => {
+    card.classList.toggle('selected', card.dataset.accent === (s.accent || 'green'));
+  });
+
+  const soundSw = document.getElementById('soundSwitch');
+  soundSw.classList.toggle('on', !!s.soundOn);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('motionBadge').textContent = reduced ? 'ENABLED' : 'OFF';
+}
+
+function setAccent(accent){
+  DieselSound.type();
+  DieselState.setAccent(accent);
+  refreshUI();
+}
+
+function toggleSound(){
+  const on = DieselState.toggleSound();
+  refreshUI();
+  if(on) DieselSound.toggle();
+}
+
+function exportLog(){
+  DieselSound.send();
+  const data = DieselState.exportState();
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'diesel_command_log.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importLog(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const ok = DieselState.importState(reader.result);
+    if(ok){ DieselSound.success(); DieselTheme.apply(DieselState.get().accent); refreshUI(); }
+    else { DieselSound.alert(); alert('Invalid command log file.'); }
+    evt.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function resetProgress(){
+  if(!confirm('This wipes rank, XP, missions, alerts, messages and preferences on this device. This cannot be undone. Continue?')) return;
+  DieselSound.alert();
+  DieselState.resetProgress();
+  DieselTheme.apply('green');
+  refreshUI();
+}
+
+refreshUI();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

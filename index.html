@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // System Boot</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  body{ display:flex; align-items:center; justify-content:center; min-height:100vh; padding:16px; }
+  .boot-wrap{
+    width:100%; max-width:640px; position:relative; z-index:2;
+    background:rgba(6,10,7,0.92);
+    backdrop-filter:blur(3px);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 0 60px rgba(57,255,106,0.08);
+    overflow:hidden;
+  }
+  .boot-top{
+    display:flex; align-items:center; gap:8px; padding:9px 12px;
+    background:#0a0b0d; border-bottom:1px solid var(--line);
+    font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted);
+  }
+  .boot-body{ padding:22px 24px 26px; font-family:'Share Tech Mono', monospace; font-size:13px; line-height:1.85; min-height:360px; }
+  .ln{ color:#7f8a80; opacity:0; animation:fadeIn .15s forwards; white-space:pre-wrap; }
+  .ln .ok{ color:var(--green); } .ln .warn{ color:var(--acid); }
+  @keyframes fadeIn{ to{ opacity:1; } }
+
+  .reveal{ margin-top:22px; text-align:center; opacity:0; }
+  .reveal.show{ opacity:1; animation:glitchIn .6s steps(2) forwards; }
+  @keyframes glitchIn{
+    0%{ transform:translate(2px,0); filter:blur(2px); }
+    30%{ transform:translate(-2px,1px); }
+    60%{ transform:translate(1px,-1px); filter:blur(0); }
+    100%{ transform:translate(0,0); }
+  }
+  .reveal .granted{ font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:4px; color:var(--green); }
+  .reveal .welcome{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:36px; letter-spacing:2px; color:#f2f3f5; margin:8px 0 4px; text-shadow:0 0 22px rgba(57,255,106,0.4); }
+  .reveal .rank{ font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--acid); letter-spacing:2px; margin-bottom:4px; }
+  .reveal .sub{ font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--muted); letter-spacing:1px; }
+  .enter-btn{
+    margin-top:22px; display:inline-block;
+    font-family:'Share Tech Mono', monospace; font-size:12.5px; letter-spacing:2px;
+    color:#02160a; background:var(--green); border:none; padding:12px 30px; border-radius:6px;
+    cursor:pointer; opacity:0; transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .enter-btn.show{ opacity:1; animation:fadeIn .4s forwards; }
+  .enter-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 22px rgba(57,255,106,0.35); }
+  .skip{ display:block; margin-top:14px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); text-align:center; opacity:0.7; }
+  .skip:hover{ color:var(--green); }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="boot-wrap">
+  <div class="boot-top">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <span style="margin-left:8px;">root@command-node:~$</span>
+  </div>
+  <div class="boot-body" id="bootBody">
+    <div class="reveal" id="reveal">
+      <div class="granted" id="grantedTxt">ACCESS GRANTED</div>
+      <div class="rank">COMMANDER CLEARANCE &middot; LEADER TIER III &middot; ALL UNITS REPORTING</div>
+      <div class="welcome">WELCOME, DIESEL</div>
+      <div class="sub">CREW ONLINE &middot; MISSIONS SYNCED &middot; NODE COMMAND-01</div>
+      <button class="enter-btn" id="enterBtn" onclick="location.href='command.html'">ENTER COMMAND SYSTEM</button>
+      <a class="skip" href="command.html">skip boot sequence &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+const lines = [
+  "initializing kernel ................ <span class='ok'>OK</span>",
+  "mounting encrypted volume /command1  <span class='ok'>OK</span>",
+  "syncing crew roster (12 units) ...... <span class='ok'>DONE</span>",
+  "loading mission board (750 closed) .. <span class='ok'>DONE</span>",
+  "syncing follower network (2.4M) ..... <span class='ok'>DONE</span>",
+  "checking firewall rings (1-9) ....... <span class='warn'>ALL DOWN</span>",
+  "loading identity: AL-MORADI_EL-DIESEL",
+  "verifying credentials ............... <span class='ok'>VERIFIED</span>",
+  "clearance level ..................... <span class='warn'>COMMANDER &middot; TIER III</span>",
+];
+
+const body = document.getElementById('bootBody');
+const reveal = document.getElementById('reveal');
+let i = 0;
+
+function typeLine(){
+  if(i < lines.length){
+    const div = document.createElement('div');
+    div.className = 'ln';
+    div.innerHTML = lines[i];
+    body.insertBefore(div, reveal);
+    DieselSound.type();
+    i++;
+    setTimeout(typeLine, 250);
+  } else {
+    setTimeout(() => {
+      reveal.classList.add('show');
+      DieselSound.success();
+      setTimeout(() => document.getElementById('enterBtn').classList.add('show'), 500);
+    }, 300);
+  }
+}
+typeLine();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

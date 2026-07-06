@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Mission Board</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .filters{ display:flex; gap:8px; padding:0 28px 18px; flex-wrap:wrap; }
+  .filter-btn{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:1px; color:var(--muted); border:1px solid var(--line); padding:6px 14px; border-radius:20px; cursor:pointer; background:transparent; }
+  .filter-btn.active{ color:var(--green); border-color:var(--green-dim); background:rgba(57,255,106,0.06); }
+
+  .mission-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .mission-card{ background:rgba(10,18,12,0.7); padding:16px 18px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:center; }
+  .mission-card .left{ flex:1; min-width:220px; }
+  .mission-card .title{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:17px; color:#f2f3f5; letter-spacing:.5px; display:flex; align-items:center; gap:10px; }
+  .mission-card .brief{ font-size:13px; color:#a9afb6; margin-top:4px; line-height:1.5; max-width:520px; }
+  .mission-card .meta{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
+  .mission-card .right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .mission-card[data-status="locked"]{ opacity:0.55; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/missions</div>
+    <div class="sys-tag">24 OPS</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html" class="active">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// MISSION BOARD</h1>
+      <p>750 MISSIONS CLOSED TO DATE &middot; 24 CURRENT OPS BELOW &middot; CLAIM TO ASSIGN YOURSELF</p>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-f="all" onclick="filterMissions('all', this)">ALL</button>
+      <button class="filter-btn" data-f="active" onclick="filterMissions('active', this)">ACTIVE</button>
+      <button class="filter-btn" data-f="claimed" onclick="filterMissions('claimed', this)">CLAIMED</button>
+      <button class="filter-btn" data-f="completed" onclick="filterMissions('completed', this)">COMPLETED</button>
+      <button class="filter-btn" data-f="locked" onclick="filterMissions('locked', this)">LOCKED</button>
+    </div>
+
+    <div class="mission-list" id="missionList">
+      <!-- mission cards injected by script -->
+    </div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+const MISSIONS = [
+  { id:"ghost_protocol", title:"GHOST PROTOCOL", brief:"Vanish without a trace across three relay nodes before the window closes.", reward:"$1,200", diff:"HIGH", base:"active" },
+  { id:"signal_break", title:"SIGNAL BREAK", brief:"Intercept a rival broadcast and swap it for our own before anyone notices.", reward:"$850", diff:"MED", base:"active" },
+  { id:"vault_run", title:"VAULT RUN", brief:"Recover an encrypted drive from a burned safehouse. Commander clearance only.", reward:"$3,000", diff:"EXTREME", base:"locked" },
+  { id:"clean_sweep", title:"CLEAN SWEEP", brief:"Wipe the logs of node GRID-77 before sunrise.", reward:"$600", diff:"MED", base:"completed" },
+  { id:"dead_drop", title:"DEAD DROP", brief:"Move a package through three anonymous hands without a single hand knowing the rest.", reward:"$400", diff:"LOW", base:"active" },
+  { id:"reverse_trace", title:"REVERSE TRACE", brief:"Find out who's been trying to trace command — and how close they got.", reward:"$950", diff:"HIGH", base:"active" },
+  { id:"silent_auction", title:"SILENT AUCTION", brief:"Win a bid on the black market without revealing who's bidding.", reward:"$1,100", diff:"HIGH", base:"active" },
+  { id:"blackout", title:"BLACKOUT", brief:"Take a rival's forum offline for six hours, clean and quiet.", reward:"$750", diff:"MED", base:"completed" },
+  { id:"ghost_writer", title:"GHOST WRITER", brief:"Plant a false trail three layers deep for anyone chasing this node.", reward:"$500", diff:"MED", base:"active" },
+  { id:"recruit", title:"RECRUIT", brief:"Bring a new operative into the crew. Vetted, quiet, loyal.", reward:"$300", diff:"LOW", base:"active" },
+  { id:"double_agent", title:"DOUBLE AGENT", brief:"Confirm a leak inside a rival crew. Commander clearance only.", reward:"$2,500", diff:"EXTREME", base:"locked" },
+  { id:"long_con", title:"LONG CON", brief:"Hold a false identity for thirty days straight without a single slip.", reward:"$1,000", diff:"HIGH", base:"active" },
+  { id:"safe_house", title:"SAFE HOUSE", brief:"Secure a new base before the old one is found.", reward:"$450", diff:"MED", base:"completed" },
+  { id:"final_signal", title:"FINAL SIGNAL", brief:"The mission nobody talks about until it's already done.", reward:"???", diff:"???", base:"locked" },
+  { id:"phantom_relay", title:"PHANTOM RELAY", brief:"Route a signal through five dead nodes without a single drop.", reward:"$700", diff:"MED", base:"active" },
+  { id:"iron_vault", title:"IRON VAULT", brief:"Crack a rumor loose from a vault nobody's opened in years.", reward:"$1,800", diff:"HIGH", base:"active" },
+  { id:"quiet_exit", title:"QUIET EXIT", brief:"Get a crew member out of a burned city block clean.", reward:"$550", diff:"MED", base:"active" },
+  { id:"false_flag", title:"FALSE FLAG", brief:"Make a rival crew take the blame for something they didn't do.", reward:"$900", diff:"HIGH", base:"active" },
+  { id:"night_market", title:"NIGHT MARKET", brief:"Move product through the night market without a name attached.", reward:"$1,300", diff:"HIGH", base:"active" },
+  { id:"static_line", title:"STATIC LINE", brief:"Keep a dead line looking alive for one more week.", reward:"$350", diff:"LOW", base:"active" },
+  { id:"second_skin", title:"SECOND SKIN", brief:"Hold a borrowed identity through a full audit without a crack showing.", reward:"$1,600", diff:"HIGH", base:"active" },
+  { id:"dark_harvest", title:"DARK HARVEST", brief:"A long-run operation years in the making. Commander clearance only.", reward:"$2,000", diff:"EXTREME", base:"locked" },
+  { id:"open_door", title:"OPEN DOOR", brief:"Leave one door unlocked for a friend, lock everything else behind it.", reward:"$250", diff:"LOW", base:"completed" },
+  { id:"last_word", title:"LAST WORD", brief:"The mission that ends every other mission on this board.", reward:"???", diff:"???", base:"locked" },
+];
+
+function statusOf(m){
+  if(DieselState.isCompleted(m.id)) return 'completed';
+  if(m.base === 'completed') return 'completed';
+  if(m.base === 'locked') return 'locked';
+  if(DieselState.isClaimed(m.id)) return 'claimed';
+  return 'active';
+}
+
+function badgeFor(status){
+  const map = {
+    active: '<span class="badge">ACTIVE</span>',
+    claimed: '<span class="badge acid">CLAIMED</span>',
+    completed: '<span class="badge muted">COMPLETED</span>',
+    locked: '<span class="badge warn">LOCKED</span>'
+  };
+  return map[status];
+}
+
+let currentFilter = 'all';
+
+function render(){
+  const list = document.getElementById('missionList');
+  list.innerHTML = '';
+  MISSIONS.forEach(m => {
+    const status = statusOf(m);
+    if(currentFilter !== 'all' && currentFilter !== status) return;
+
+    const card = document.createElement('div');
+    card.className = 'mission-card';
+    card.dataset.status = status;
+
+    let actionHtml = '';
+    if(status === 'active'){
+      actionHtml = `<button class="btn" onclick="claim('${m.id}')">CLAIM</button>`;
+    } else if(status === 'claimed'){
+      actionHtml = `<button class="btn solid" onclick="complete('${m.id}')">MARK COMPLETE</button>`;
+    } else if(status === 'locked'){
+      actionHtml = `<button class="btn" disabled>CLEARANCE REQ.</button>`;
+    } else {
+      actionHtml = `<span class="badge muted">DONE</span>`;
+    }
+
+    card.innerHTML = `
+      <div class="left">
+        <div class="title">${m.title}</div>
+        <div class="brief">${m.brief}</div>
+        <div class="meta">DIFFICULTY: ${m.diff} &middot; REWARD: ${m.reward}</div>
+      </div>
+      <div class="right">${badgeFor(status)}${actionHtml}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function claim(id){
+  DieselSound.toggle();
+  DieselState.claimMission(id);
+  render();
+}
+
+function complete(id){
+  const m = MISSIONS.find(x => x.id === id);
+  const result = DieselState.completeMission(id, m ? m.diff : null);
+  if(result.leveledUp) DieselSound.levelUp();
+  else DieselSound.success();
+  render();
+  showXpToast(result);
+}
+
+function showXpToast(result){
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(10,18,12,0.95);border:1px solid var(--green-dim);color:var(--green);font-family:"Share Tech Mono",monospace;font-size:12.5px;letter-spacing:1px;padding:12px 20px;border-radius:8px;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,0.5);text-align:center;';
+  toast.textContent = result.leveledUp
+    ? `+${result.gained} XP \u00b7 RANK UP \u2192 ${result.after.label} (TIER ${result.after.tier})`
+    : `+${result.gained} XP`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.transition = 'opacity .4s ease'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
+}
+
+function filterMissions(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Archive</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .section-title{ padding:22px 28px 4px; font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:2px; color:var(--green); }
+  .section-title::before{ content:"//"; color:var(--muted); margin-right:8px; }
+
+  .log-panel{ padding:8px 28px 10px; }
+  .log-line{ font-family:'Share Tech Mono', monospace; font-size:12.5px; color:#9aa0a8; padding:11px 0; border-bottom:1px dashed var(--line); display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+  .log-line:last-child{ border-bottom:none; }
+  .log-line .msg{ flex:1; }
+  .log-line .msg b{ color:#e6e8eb; }
+  .log-line .t{ color:var(--muted); font-size:11px; white-space:nowrap; padding-top:1px; }
+  .flag{ display:inline-block; font-size:10px; letter-spacing:1px; padding:1px 6px; border-radius:3px; margin-right:8px; font-family:'Share Tech Mono', monospace; }
+  .flag.op{ background:rgba(57,255,106,0.1); color:var(--green); border:1px solid var(--green-dim); }
+  .flag.crew{ background:rgba(212,255,61,0.08); color:var(--acid); border:1px solid #4d5a1a; }
+
+  .file-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:1px; background:var(--line); margin:16px 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .file-card{ background:rgba(10,18,12,0.7); padding:18px 14px; text-align:center; }
+  .file-card .icon{ font-size:28px; color:var(--green); margin-bottom:8px; }
+  .file-card .name{ font-family:'Share Tech Mono', monospace; font-size:11.5px; color:#dfe2e6; }
+  .file-card .meta{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:4px; }
+  .file-card.locked .icon{ color:var(--warn); }
+  .file-card.locked .name{ color:#a35b5b; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/archive</div>
+    <div class="sys-tag">AES-∞</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html" class="active">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// ARCHIVE</h1>
+      <p>FULL ACTIVITY LOG + ENCRYPTED FILE VAULT &middot; NODE COMMAND-01 &middot; 750 MISSIONS LOGGED</p>
+    </div>
+
+    <div class="section-title">ACTIVITY LOG</div>
+    <div class="log-panel">
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>Took full control of node <b>GRID-77</b> &mdash; no trace left</span><span class="t">01:04</span></div>
+      <div class="log-line"><span class="msg"><span class="flag crew">CREW</span>ECHO intercepted a rival broadcast mid-transmission</span><span class="t">02:11</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>Crew network grew by two trusted units this week</span><span class="t">03:29</span></div>
+      <div class="log-line"><span class="msg"><span class="flag crew">CREW</span>VIPER cleared a path through three firewalls, silent</span><span class="t">04:47</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>New safehouse secured before the old one was found</span><span class="t">06:15</span></div>
+      <div class="log-line"><span class="msg"><span class="flag crew">CREW</span>WRAITH scrubbed every trace of last week's operation</span><span class="t">08:02</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>Command authority confirmed at full strength across the crew</span><span class="t">13:30</span></div>
+      <div class="log-line"><span class="msg"><span class="flag crew">CREW</span>NOVA brought a new operative in — vetted and cleared</span><span class="t">17:48</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>Rival network left in ruins, no warning given</span><span class="t">21:58</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>Follower count crossed 2.4M — biggest single-day jump yet</span><span class="t">22:40</span></div>
+      <div class="log-line"><span class="msg"><span class="flag op">CMD</span>750th mission logged and closed out clean</span><span class="t">23:55</span></div>
+    </div>
+
+    <div class="section-title">FILE VAULT</div>
+    <div class="file-grid">
+      <div class="file-card"><div class="icon">&#128193;</div><div class="name">ORIGIN_STORY</div><div class="meta">.log</div></div>
+      <div class="file-card"><div class="icon">&#128274;</div><div class="name">REAL_IDENTITY</div><div class="meta">locked</div></div>
+      <div class="file-card locked"><div class="icon">&#9888;</div><div class="name">GRID-77_TAKEOVER</div><div class="meta">classified</div></div>
+      <div class="file-card"><div class="icon">&#127942;</div><div class="name">COMMAND_HISTORY</div><div class="meta">.cert</div></div>
+      <div class="file-card"><div class="icon">&#128274;</div><div class="name">CREW_CONTRACTS</div><div class="meta">locked</div></div>
+      <div class="file-card"><div class="icon">&#128200;</div><div class="name">MISSION_STATS</div><div class="meta">.csv</div></div>
+      <div class="file-card locked"><div class="icon">&#9888;</div><div class="name">RIVAL_TAKEDOWN</div><div class="meta">classified</div></div>
+      <div class="file-card"><div class="icon">&#128172;</div><div class="name">CREW_COMMS</div><div class="meta">.txt</div></div>
+    </div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

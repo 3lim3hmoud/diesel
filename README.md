@@ -1,0 +1,39 @@
+# DIESEL // COMMAND SYSTEM (PWA)
+
+سيستيم كامل بشخصية "قائد" (Commander) — فيه لوحة تحكم، طاقم (Crew)، لوحة مهام (Missions) تقدر تتفاعل معاها فعليًا، وأرشيف. شغال كـ PWA وجاهز يترفع على GitHub Pages.
+
+## الصفحات
+- `index.html` — الدخول: boot sequence + خلفية حروف نازلة (matrix rain) + ترحيب "WELCOME, DIESEL".
+- `command.html` — مركز القيادة: بروفايلك، إحصائيات، وأزرار تحكم حقيقية (SYSTEM LOCKDOWN toggle، BROADCAST) بتتخزن فعليًا في المتصفح.
+- `crew.html` — طاقمك (7 شخصيات بأدوار مختلفة).
+- `missions.html` — لوحة مهام تقدر فعلاً تعمل CLAIM للمهمة وبعدين MARK COMPLETE، وفيها فلاتر (ACTIVE / CLAIMED / COMPLETED / LOCKED).
+- `archive.html` — اللوج الكامل + خزنة الملفات.
+
+## التفاعل الحقيقي
+الأزرار دي مش شكلية بس — بتحفظ حالتها فعليًا في متصفحك (localStorage) عشان لما ترجع الموقع تلاقي نفس الحالة:
+- تفعيل/إلغاء LOCKDOWN من صفحة COMMAND.
+- عداد BROADCAST بيزيد فعليًا كل ما تدوس SEND.
+- تقدر تعمل CLAIM لمهمة من MISSIONS وبعدين تقفلها COMPLETE.
+
+## إزاي ترفعه على GitHub Pages
+1. اعمل حساب على github.com لو مش عندك.
+2. اعمل **New repository** (مثلاً `diesel-command`)، خليه Public.
+3. من صفحة الريبو دوس "uploading an existing file" وارفع **كل** الملفات والمجلدات اللي جوه الـ zip (بحيث `index.html` يكون في الـ root، مش جوه مجلد فرعي).
+4. **Settings** → **Pages** → اختار branch **main** والمجلد **/ (root)** → **Save**.
+5. هياخد دقيقة وهيديك رابط زي: `https://username.github.io/diesel-command/`
+6. افتحه من الموبايل وهتلاقي خيار "إضافة للشاشة الرئيسية" لأنه PWA حقيقي.
+
+## إضافات جديدة
+- **نظام XP/رانك حقيقي**: كل مهمة بتكملها بتديك XP حسب صعوبتها، والرانك بيترقّى فعليًا (RECRUIT COMMANDER → COMMANDER → SENIOR COMMANDER → ELITE COMMANDER → COMMANDER PRIME) وبيتحدث في `command.html`.
+- **رسايل تفاعلية**: تقدر ترد على أي thread في `messages.html`، والطاقم بيردّ عليك تلقائيًا بعد شوية.
+- **تنبيهات حية**: أي فعل بتعمله (broadcast, lockdown, إكمال مهمة, ترقية رانك) بيولّد alert جديد في `alerts.html`.
+- **Export / Import**: من `command.html` تقدر تصدّر الحالة بتاعتك كملف JSON أو تستوردها تاني.
+- **صوت واجهة**: بيبس بسيطة (Web Audio API، من غير ملفات صوت خارجية) على الأفعال المختلفة، وتقدر تقفلها من زرار SOUND.
+- **خريطة تفاعلية**: دوس على أي node في `map.html` عشان تشوف تفاصيله ويتحط هايلايت على الكارت بتاعه.
+
+## تخصيص
+- كل الألوان والخطوط في `css/style.css` تحت `:root`.
+- خلفية الحروف النازلة في `js/matrix.js` — تقدر تغيّر السرعة أو الألوان من هناك.
+- الطاقم والمهام مكتوبين جوه `crew.html` و `missions.html` مباشرة — تقدر تضيف/تعدل أي شخصية أو مهمة براحتك.
+
+كل المحتوى ده شخصية خيالية للترفيه (roleplay) — مفيش أي كود حقيقي بيخترق أو يتحكم في أي حاجة برة الموقع نفسه.

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Operations Map</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .map-wrap{ padding:10px 28px 8px; }
+  .map-frame{
+    background:rgba(6,10,7,0.6); border:1px solid var(--line); border-radius:8px;
+    padding:10px; overflow:hidden;
+  }
+  svg{ width:100%; height:auto; display:block; }
+  .node-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#dfe2e6; }
+  .node-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#5a6459; }
+  .link-line{ stroke:#0f4d24; stroke-width:1.5; fill:none; }
+  .link-line.hot{ stroke:#39ff6a; stroke-dasharray:4 3; animation:dash 2.5s linear infinite; }
+  @keyframes dash{ to{ stroke-dashoffset:-20; } }
+  .node-dot{ stroke:#020403; stroke-width:2; cursor:pointer; transition:r .15s ease, filter .15s ease; }
+  .node-dot.command{ fill:#d4ff3d; }
+  .node-dot.active{ fill:#39ff6a; }
+  .node-dot.watch{ fill:#ff3b3b; }
+  .node-dot.dim{ fill:#4d564f; }
+  .node-dot:hover{ filter:drop-shadow(0 0 6px currentColor); }
+  .node-card{ transition:background .2s ease, border-color .2s ease; scroll-margin-top:20px; }
+  .node-card.highlight{ background:rgba(57,255,106,0.1) !important; border-color:var(--green-dim); }
+
+  .legend{ display:flex; gap:18px; padding:14px 28px 22px; flex-wrap:wrap; }
+  .legend .item{ display:flex; align-items:center; gap:7px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+  .legend .sw{ width:9px; height:9px; border-radius:50%; }
+  .legend .sw.command{ background:#d4ff3d; }
+  .legend .sw.active{ background:#39ff6a; }
+  .legend .sw.watch{ background:#ff3b3b; }
+  .legend .sw.dim{ background:#4d564f; }
+
+  .node-panel{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .node-card{ background:rgba(10,18,12,0.7); padding:14px 16px; }
+  .node-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:14.5px; color:#f2f3f5; }
+  .node-card .st{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:3px; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/map</div>
+    <div class="sys-tag">6 NODES</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html" class="active">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// OPERATIONS MAP</h1>
+      <p>SCHEMATIC NODE NETWORK &middot; NOT A REAL-WORLD LOCATION MAP</p>
+    </div>
+
+    <div class="map-wrap">
+      <div class="map-frame">
+        <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+          <!-- links -->
+          <path class="link-line hot" d="M450,210 L200,120"></path>
+          <path class="link-line hot" d="M450,210 L700,110"></path>
+          <path class="link-line" d="M450,210 L180,300"></path>
+          <path class="link-line hot" d="M450,210 L720,300"></path>
+          <path class="link-line" d="M450,210 L450,370"></path>
+          <path class="link-line" d="M200,120 L180,300"></path>
+          <path class="link-line" d="M700,110 L720,300"></path>
+
+          <!-- command node -->
+          <circle class="node-dot command" cx="450" cy="210" r="12" data-node="COMMAND-01" onclick="selectNode(this,'COMMAND-01')"></circle>
+          <text class="node-label" x="450" y="195" text-anchor="middle">COMMAND-01</text>
+          <text class="node-sub" x="450" y="235" text-anchor="middle">commander node</text>
+
+          <!-- GRID-77 -->
+          <circle class="node-dot active" cx="200" cy="120" r="8" data-node="GRID-77" onclick="selectNode(this,'GRID-77')"></circle>
+          <text class="node-label" x="200" y="105" text-anchor="middle">GRID-77</text>
+          <text class="node-sub" x="200" y="140" text-anchor="middle">under control</text>
+
+          <!-- RELAY-9 -->
+          <circle class="node-dot active" cx="700" cy="110" r="8" data-node="RELAY-9" onclick="selectNode(this,'RELAY-9')"></circle>
+          <text class="node-label" x="700" y="95" text-anchor="middle">RELAY-9</text>
+          <text class="node-sub" x="700" y="130" text-anchor="middle">signal relay</text>
+
+          <!-- SAFEHOUSE-4 -->
+          <circle class="node-dot dim" cx="180" cy="300" r="8" data-node="SAFEHOUSE-4" onclick="selectNode(this,'SAFEHOUSE-4')"></circle>
+          <text class="node-label" x="180" y="325" text-anchor="middle">SAFEHOUSE-4</text>
+          <text class="node-sub" x="180" y="340" text-anchor="middle">dormant</text>
+
+          <!-- BLACKVAULT-13 -->
+          <circle class="node-dot watch" cx="720" cy="300" r="8" data-node="BLACKVAULT-13" onclick="selectNode(this,'BLACKVAULT-13')"></circle>
+          <text class="node-label" x="720" y="325" text-anchor="middle">BLACKVAULT-13</text>
+          <text class="node-sub" x="720" y="340" text-anchor="middle">rival chatter detected</text>
+
+          <!-- VAULT-13 -->
+          <circle class="node-dot dim" cx="450" cy="370" r="8" data-node="VAULT-13" onclick="selectNode(this,'VAULT-13')"></circle>
+          <text class="node-label" x="450" y="395" text-anchor="middle">VAULT-13</text>
+          <text class="node-sub" x="450" y="408" text-anchor="middle">encrypted storage</text>
+        </svg>
+      </div>
+      <div class="node-detail" id="nodeDetail" style="display:none; padding:12px 4px 4px; font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--muted);">
+        Tap a node above to see full detail.
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="item"><span class="sw command"></span>Command node</div>
+      <div class="item"><span class="sw active"></span>Active / secured</div>
+      <div class="item"><span class="sw watch"></span>Needs attention</div>
+      <div class="item"><span class="sw dim"></span>Dormant</div>
+    </div>
+
+    <div class="node-panel" id="nodePanel">
+      <div class="node-card" id="card-COMMAND-01"><div class="nm">COMMAND-01</div><div class="st">core node &middot; commander clearance</div></div>
+      <div class="node-card" id="card-GRID-77"><div class="nm">GRID-77</div><div class="st">seized &middot; zero trace left</div></div>
+      <div class="node-card" id="card-RELAY-9"><div class="nm">RELAY-9</div><div class="st">signal routing &middot; 3 hops active</div></div>
+      <div class="node-card" id="card-SAFEHOUSE-4"><div class="nm">SAFEHOUSE-4</div><div class="st">dormant &middot; held in reserve</div></div>
+      <div class="node-card" id="card-BLACKVAULT-13"><div class="nm">BLACKVAULT-13</div><div class="st">rival chatter &middot; watching closely</div></div>
+      <div class="node-card" id="card-VAULT-13"><div class="nm">VAULT-13</div><div class="st">encrypted archive &middot; AES-∞</div></div>
+    </div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+function selectNode(circle, name){
+  DieselSound.type();
+  document.querySelectorAll('.node-card').forEach(c => c.classList.remove('highlight'));
+  const card = document.getElementById('card-' + name);
+  if(card){
+    card.classList.add('highlight');
+    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+  const detail = document.getElementById('nodeDetail');
+  const statusText = card ? card.querySelector('.st').textContent : '';
+  detail.style.display = 'block';
+  detail.innerHTML = `<span style="color:var(--green)">// ${name}</span> &mdash; ${statusText}`;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

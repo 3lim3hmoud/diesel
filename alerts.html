@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Alerts</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .inbox-tools{ display:flex; justify-content:space-between; align-items:center; padding:0 28px 18px; flex-wrap:wrap; gap:10px; }
+  .inbox-count{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); letter-spacing:1px; }
+  .inbox-count b{ color:var(--acid); }
+
+  .alert-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .alert{ background:rgba(10,18,12,0.7); padding:14px 18px; display:flex; align-items:flex-start; gap:12px; }
+  .alert.unread{ background:rgba(212,255,61,0.03); }
+  .alert .ic{ font-size:18px; flex-shrink:0; margin-top:1px; }
+  .alert .content{ flex:1; }
+  .alert .msg{ font-family:'Share Tech Mono', monospace; font-size:12.5px; color:#dfe2e6; }
+  .alert .time{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:3px; }
+  .alert .kind{ font-size:9px; letter-spacing:1px; padding:1px 6px; border-radius:3px; margin-right:8px; font-family:'Share Tech Mono', monospace; }
+  .kind.growth{ background:rgba(212,255,61,0.08); color:var(--acid); border:1px solid #4d5a1a; }
+  .kind.mission{ background:rgba(57,255,106,0.1); color:var(--green); border:1px solid var(--green-dim); }
+  .kind.security{ background:rgba(255,59,59,0.08); color:var(--warn); border:1px solid #5a1a1a; }
+  .kind.crew{ background:transparent; color:var(--muted); border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/alerts</div>
+    <div class="sys-tag" id="unreadTag">— NEW</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html" class="active">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// SYSTEM ALERTS</h1>
+      <p>REAL-TIME NODE NOTIFICATIONS &middot; GROWTH, MISSIONS &amp; SECURITY</p>
+    </div>
+
+    <div class="inbox-tools">
+      <div class="inbox-count"><b id="unreadCount">0</b> new alerts</div>
+      <button class="btn" onclick="markAllRead()">MARK ALL READ</button>
+    </div>
+
+    <div class="alert-list" id="alertList"></div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+// Seed alerts — these have fixed relative times for flavor.
+const STATIC_ALERTS = [
+  { id:"a1", kind:"growth", icon:"&#128200;", msg:"Follower count crossed <b>2.4M</b> — biggest single-day jump yet", time:"12m ago" },
+  { id:"a2", kind:"mission", icon:"&#9203;", msg:"Mission <b>GHOST PROTOCOL</b> expires in 6 hours — still unclaimed", time:"40m ago" },
+  { id:"a3", kind:"crew", icon:"&#128101;", msg:"New crew application received from an unverified source", time:"1h ago" },
+  { id:"a4", kind:"security", icon:"&#9888;", msg:"Lockdown auto-disengaged after 12 hours — review before reactivating", time:"3h ago" },
+  { id:"a5", kind:"growth", icon:"&#128227;", msg:"Broadcast reached all <b>12 units</b> with zero drop-off", time:"5h ago" },
+  { id:"a6", kind:"security", icon:"&#128064;", msg:"Rival chatter detected mentioning <b>COMMAND-01</b> by name", time:"7h ago" },
+  { id:"a7", kind:"mission", icon:"&#9989;", msg:"Mission <b>CLEAN SWEEP</b> marked complete — reward settled", time:"10h ago" },
+  { id:"a8", kind:"crew", icon:"&#128274;", msg:"Vault access log rotated by CIPHER — no anomalies found", time:"13h ago" },
+  { id:"a9", kind:"growth", icon:"&#127942;", msg:"750th mission logged — milestone flagged for the archive", time:"18h ago" },
+];
+
+function timeAgo(ts){
+  const diffMs = Date.now() - ts;
+  const mins = Math.floor(diffMs / 60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if(hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+function allAlerts(){
+  const s = DieselState.get();
+  const dynamic = s.alerts.map(a => ({ id:a.id, kind:a.kind, icon:a.icon, msg:a.msg, time: timeAgo(a.ts) }));
+  return dynamic.concat(STATIC_ALERTS);
+}
+
+function render(){
+  const s = DieselState.get();
+  const list = document.getElementById('alertList');
+  const alerts = allAlerts();
+  list.innerHTML = '';
+  alerts.forEach(a => {
+    const isRead = s.readAlerts.includes(a.id);
+    const div = document.createElement('div');
+    div.className = 'alert' + (isRead ? '' : ' unread');
+    div.innerHTML = `
+      <div class="ic">${a.icon}</div>
+      <div class="content">
+        <div class="msg"><span class="kind ${a.kind}">${a.kind.toUpperCase()}</span>${a.msg}</div>
+        <div class="time">${a.time}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  const unread = alerts.filter(a => !s.readAlerts.includes(a.id)).length;
+  document.getElementById('unreadCount').textContent = unread;
+  document.getElementById('unreadTag').textContent = unread + ' NEW';
+}
+
+function markAllRead(){
+  DieselSound.toggle();
+  DieselState.markAlertsRead(allAlerts().map(a => a.id));
+  render();
+}
+
+render();
+setInterval(render, 30000); // refresh relative timestamps
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

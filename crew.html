@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Crew Roster</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .crew-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .crew-card{ background:rgba(10,18,12,0.7); padding:18px; }
+  .crew-card .top{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .crew-card .ic{ width:42px; height:42px; border-radius:10px; background:#0a120c; border:1px solid var(--green-dim); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  .crew-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:17px; color:#f2f3f5; letter-spacing:.5px; }
+  .crew-card .rl{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--green); letter-spacing:1px; }
+  .crew-card .desc{ font-size:13px; color:#a9afb6; line-height:1.5; margin-bottom:10px; }
+  .crew-card .meta{ display:flex; justify-content:space-between; align-items:center; }
+  .status-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; }
+  .status-dot.on{ background:var(--green); box-shadow:0 0 6px var(--green); }
+  .status-dot.mission{ background:var(--acid); }
+  .status-dot.off{ background:var(--muted); }
+  .status-txt{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/crew</div>
+    <div class="sys-tag">12 UNITS</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html" class="active">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// CREW ROSTER</h1>
+      <p>12 OPERATIVES &middot; ALL REPORTING TO COMMAND-01 &middot; FICTIONAL CHARACTER SHEET</p>
+    </div>
+
+    <div class="crew-grid">
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128123;</div><div><div class="nm">GHOST</div><div class="rl">INFILTRATION</div></div></div>
+        <div class="desc">Gets into rooms nobody remembers opening a door for. Never speaks on comms, only in logs.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 9</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128010;</div><div><div class="nm">VIPER</div><div class="rl">NETWORK BREACH</div></div></div>
+        <div class="desc">Finds the one open door in a hundred locked ones. Cold, exact, never rushes a job.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 8</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128225;</div><div><div class="nm">ECHO</div><div class="rl">SIGNALS</div></div></div>
+        <div class="desc">Hears every frequency before it's sent. Runs the crew's early-warning line.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 7</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128373;</div><div><div class="nm">CIPHER</div><div class="rl">CRYPTOGRAPHY</div></div></div>
+        <div class="desc">Speaks in codes even the crew needs a minute to read. Guards the vault keys.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 9</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#129497;</div><div><div class="nm">WRAITH</div><div class="rl">COUNTER-TRACE</div></div></div>
+        <div class="desc">Job is simple: make sure nobody ever finds the way back to command.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot off"></span>offline</span><span class="badge">LVL 6</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#129418;</div><div><div class="nm">RELAY</div><div class="rl">LOGISTICS</div></div></div>
+        <div class="desc">Moves files, drops, and people between safehouses without a single delay.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128171;</div><div><div class="nm">NOVA</div><div class="rl">RECRUITMENT</div></div></div>
+        <div class="desc">Finds the next name worth trusting before anyone else even notices them.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 5</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128273;</div><div><div class="nm">TALON</div><div class="rl">ENFORCEMENT</div></div></div>
+        <div class="desc">Handles the conversations nobody else on the crew wants to have.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 8</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#127752;</div><div><div class="nm">MIRAGE</div><div class="rl">DECEPTION OPS</div></div></div>
+        <div class="desc">Builds a story so convincing even the crew forgets it isn't true.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot mission"></span>on mission</span><span class="badge">LVL 7</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#10052;&#65039;</div><div><div class="nm">FROST</div><div class="rl">SURVEILLANCE</div></div></div>
+        <div class="desc">Watches longer and says less than anyone else on the roster.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#128293;</div><div><div class="nm">BLAZE</div><div class="rl">EXTRACTION</div></div></div>
+        <div class="desc">Gets people and files out of tight spots before the window shuts.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot off"></span>offline</span><span class="badge">LVL 7</span></div>
+      </div>
+      <div class="crew-card">
+        <div class="top"><div class="ic">&#9889;</div><div><div class="nm">PULSE</div><div class="rl">RAPID RESPONSE</div></div></div>
+        <div class="desc">First one on comms the second something on the board goes wrong.</div>
+        <div class="meta"><span class="status-txt"><span class="status-dot on"></span>online</span><span class="badge">LVL 6</span></div>
+      </div>
+    </div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

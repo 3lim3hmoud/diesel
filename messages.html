@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Messages</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .inbox-tools{ display:flex; justify-content:space-between; align-items:center; padding:0 28px 18px; flex-wrap:wrap; gap:10px; }
+  .inbox-count{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); letter-spacing:1px; }
+  .inbox-count b{ color:var(--acid); }
+
+  .thread-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .thread{ background:rgba(10,18,12,0.7); padding:16px 18px; cursor:pointer; transition:background .12s ease; }
+  .thread:hover{ background:rgba(57,255,106,0.04); }
+  .thread-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .thread-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .unread-dot{ width:8px; height:8px; border-radius:50%; background:var(--acid); flex-shrink:0; box-shadow:0 0 6px var(--acid); }
+  .unread-dot.hidden{ background:transparent; box-shadow:none; }
+  .sender{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:15px; color:#f2f3f5; }
+  .sender.rival{ color:var(--warn); }
+  .sender.fan{ color:var(--acid); }
+  .time{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); white-space:nowrap; }
+  .snippet{ font-size:13px; color:#a9afb6; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .thread.open .snippet{ white-space:normal; }
+  .thread-body{ display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-family:'Share Tech Mono', monospace; font-size:12.5px; color:#c3c8cd; line-height:1.7; }
+  .thread.open .thread-body{ display:block; }
+  .thread-body .line{ margin-bottom:6px; }
+  .thread-body .them{ color:#9aa0a8; }
+  .thread-body .me{ color:var(--green); }
+  .reply-row{ display:flex; gap:8px; margin-top:12px; }
+  .reply-input{
+    flex:1; background:#0a0b0d; border:1px solid var(--line); border-radius:6px;
+    padding:8px 10px; color:#dfe2e6; font-family:'Share Tech Mono', monospace; font-size:12px;
+  }
+  .reply-input:focus{ outline:none; border-color:var(--green-dim); }
+  .typing-indicator{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); font-style:italic; margin-top:6px; display:none; }
+  .typing-indicator.show{ display:block; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/messages</div>
+    <div class="sys-tag" id="unreadTag">— UNREAD</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html" class="active">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// SECURE MESSAGES</h1>
+      <p>ENCRYPTED THREADS &middot; CREW, CONTACTS &amp; NETWORK CHATTER</p>
+    </div>
+
+    <div class="inbox-tools">
+      <div class="inbox-count"><b id="unreadCount">0</b> unread &middot; <span id="totalCount">0</span> total</div>
+      <button class="btn" onclick="markAllRead()">MARK ALL READ</button>
+    </div>
+
+    <div class="thread-list" id="threadList"></div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>FICTIONAL PERSONA &middot; FOR ENTERTAINMENT ONLY</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script>
+const AUTO_REPLIES = {
+  crew: ["Copy that. Moving now.", "Confirmed — standing by for the next call.", "On it, give me a few minutes.", "Logged. Nothing else to report on my end.", "Understood. Staying off comms till it's done."],
+  fan: ["That means a lot, honestly. Respect right back.", "Appreciate you watching the board.", "Noted — thanks for the support out there."],
+  rival: ["We'll see about that, COMMAND-01.", "This isn't the last you'll hear from us.", "Careful. The board is watching too."]
+};
+
+const THREADS = [
+  { id:"ghost_1", sender:"GHOST", type:"crew", time:"2m ago",
+    snippet:"Node's clear. Moving to phase two.",
+    body:[["them","Node's clear. Moving to phase two."],["me","Confirmed. Stay off comms till you're through."],["them","Copy. Ghost out."]] },
+  { id:"viper_1", sender:"VIPER", type:"crew", time:"14m ago",
+    snippet:"Found the gap. Give the word and I'm in.",
+    body:[["them","Found the gap. Give the word and I'm in."],["me","Hold. Let CIPHER confirm the keys first."],["them","Standing by."]] },
+  { id:"fan_1", sender:"@shadow_runner_99", type:"fan", time:"38m ago",
+    snippet:"the whole board talks about you. respect from every corner of the network.",
+    body:[["them","the whole board talks about you. respect from every corner of the network."],["me","Stay sharp. Respect doesn't keep you safe, discipline does."]] },
+  { id:"rival_1", sender:"UNKNOWN_078", type:"rival", time:"1h ago",
+    snippet:"This isn't over, DIESEL.",
+    body:[["them","This isn't over, DIESEL."],["me","It ended the moment you sent this from a burned node."]] },
+  { id:"nova_1", sender:"NOVA", type:"crew", time:"2h ago",
+    snippet:"New recruit ready for review whenever you're free.",
+    body:[["them","New recruit ready for review whenever you're free."],["me","Send the file. I'll sign off tonight."]] },
+  { id:"cipher_1", sender:"CIPHER", type:"crew", time:"3h ago",
+    snippet:"Vault keys rotated. All clear on this end.",
+    body:[["them","Vault keys rotated. All clear on this end."],["me","Good. Log it and get some rest."]] },
+  { id:"fan_2", sender:"@nightline_99", type:"fan", time:"5h ago",
+    snippet:"how do you even build a crew like this. no cap legend behavior",
+    body:[["them","how do you even build a crew like this. no cap legend behavior"],["me","One name you trust completely. Everything after that is patience."]] },
+  { id:"wraith_1", sender:"WRAITH", type:"crew", time:"9h ago",
+    snippet:"Trace scrubbed. We're ghosts again.",
+    body:[["them","Trace scrubbed. We're ghosts again."],["me","Copy that. Good work tonight."]] },
+];
+
+function fullBody(t){
+  const s = DieselState.get();
+  const extra = (s.messageReplies[t.id] || []).map(r => [r.who, r.txt]);
+  return t.body.concat(extra);
+}
+
+function render(){
+  const s = DieselState.get();
+  const read = s.readMessages;
+  const list = document.getElementById('threadList');
+  const openIds = Array.from(list.querySelectorAll('.thread.open')).map(el => el.dataset.id);
+  list.innerHTML = '';
+  THREADS.forEach(t => {
+    const isRead = read.includes(t.id);
+    const div = document.createElement('div');
+    div.className = 'thread' + (openIds.includes(t.id) ? ' open' : '');
+    div.dataset.id = t.id;
+    const senderClass = t.type === 'rival' ? 'rival' : (t.type === 'fan' ? 'fan' : '');
+    const body = fullBody(t);
+    div.innerHTML = `
+      <div class="thread-top">
+        <div class="thread-left">
+          <span class="unread-dot ${isRead ? 'hidden' : ''}"></span>
+          <span class="sender ${senderClass}">${t.sender}</span>
+        </div>
+        <span class="time">${t.time}</span>
+      </div>
+      <div class="snippet">${t.snippet}</div>
+      <div class="thread-body">
+        <div class="msgs">${body.map(([who, txt]) => `<div class="line ${who}">${who === 'me' ? '&gt; YOU: ' : t.sender + ': '}${txt}</div>`).join('')}</div>
+        <div class="typing-indicator" id="typing-${t.id}">${t.sender} is typing…</div>
+        <div class="reply-row">
+          <input class="reply-input" type="text" placeholder="Type a reply…" id="input-${t.id}">
+          <button class="btn" onclick="sendReply(event, '${t.id}')">SEND</button>
+        </div>
+      </div>
+    `;
+    div.addEventListener('click', () => {
+      div.classList.toggle('open');
+      if(!isRead){
+        DieselState.markMessageRead(t.id);
+        render();
+      }
+    });
+    const input = div.querySelector('.reply-input');
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') sendReply(e, t.id); });
+    div.querySelector('.reply-row button').addEventListener('click', e => e.stopPropagation());
+    list.appendChild(div);
+  });
+
+  const unread = THREADS.filter(t => !read.includes(t.id)).length;
+  document.getElementById('unreadCount').textContent = unread;
+  document.getElementById('totalCount').textContent = THREADS.length;
+  document.getElementById('unreadTag').textContent = unread + ' UNREAD';
+}
+
+function sendReply(evt, threadId){
+  evt.stopPropagation();
+  const input = document.getElementById('input-' + threadId);
+  const txt = input.value.trim();
+  if(!txt) return;
+  DieselSound.send();
+  DieselState.addReply(threadId, 'me', txt);
+  DieselState.markMessageRead(threadId);
+  input.value = '';
+  render();
+
+  const t = THREADS.find(x => x.id === threadId);
+  const typingEl = document.getElementById('typing-' + threadId);
+  if(typingEl) typingEl.classList.add('show');
+
+  setTimeout(() => {
+    const pool = AUTO_REPLIES[t.type] || AUTO_REPLIES.crew;
+    const reply = pool[Math.floor(Math.random() * pool.length)];
+    DieselState.addReply(threadId, 'them', reply);
+    DieselSound.receive();
+    render();
+    const openThread = document.querySelector(`.thread[data-id="${threadId}"]`);
+    if(openThread) openThread.classList.add('open');
+  }, 1400 + Math.random() * 900);
+}
+
+function markAllRead(){
+  DieselSound.toggle();
+  DieselState.markAllMessagesRead(THREADS.map(t => t.id));
+  render();
+}
+
+render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
