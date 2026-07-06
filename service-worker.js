@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diesel-command-v5';
+const CACHE_NAME = 'diesel-command-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   './alerts.html',
   './map.html',
   './settings.html',
+  './wallet.html',
   './css/style.css',
   './js/matrix.js',
   './js/state.js',
