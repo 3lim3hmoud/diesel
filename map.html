@@ -11,102 +11,63 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="js/theme.js"></script>
 <style>
-  /* this page runs wider than the rest of the app — it's the global op-center, it should feel big */
-  .wrap{ max-width:1360px; }
-
   .map-wrap{ padding:10px 28px 8px; }
+
+  .map-controls{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+  .firewall-btn{
+    font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:1px;
+    background:rgba(57,255,106,0.06); color:var(--green); border:1px solid var(--green-dim);
+    border-radius:6px; padding:9px 16px; cursor:pointer; transition:all .15s ease;
+  }
+  .firewall-btn:hover{ background:rgba(57,255,106,0.14); box-shadow:0 0 10px rgba(57,255,106,0.25); }
+  .firewall-btn.on{ background:rgba(255,59,59,0.1); color:var(--warn); border-color:#5a1f1f; }
+  .firewall-btn.on:hover{ background:rgba(255,59,59,0.18); }
+  .firewall-status{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); letter-spacing:1px; }
+
+  .world-stats{ display:flex; gap:16px; flex-wrap:wrap; padding:0 0 12px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+  .world-stats b{ color:var(--acid); }
+
   .map-frame{
-    background:
-      linear-gradient(180deg, rgba(2,4,3,0.55), rgba(2,4,3,0.72) 60%, rgba(2,4,3,0.88)),
-      radial-gradient(ellipse at 50% 40%, rgba(15,77,36,0.22), rgba(6,10,7,0.2) 65%),
-      url('images/world-network-bg.jpg');
-    background-size:cover; background-position:center 42%;
-    border:1px solid var(--line); border-radius:10px; padding:14px 14px 6px; overflow:hidden; position:relative;
-    box-shadow:0 0 0 1px rgba(57,255,106,0.05), 0 30px 70px -30px rgba(0,0,0,0.7);
+    background:radial-gradient(ellipse at 50% 45%, rgba(15,77,36,0.18), rgba(6,10,7,0.75) 70%);
+    border:1px solid var(--line); border-radius:8px; padding:10px; overflow:hidden; position:relative;
   }
-  .map-frame-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
-  .map-owner-tag{
-    font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:2px; color:var(--acid);
-    border:1px solid #4d5a1a; background:rgba(212,255,61,0.08); padding:4px 10px; border-radius:4px;
+  .map-bg-img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    filter:grayscale(1) brightness(0.5) sepia(1) hue-rotate(70deg) saturate(3.2);
+    opacity:0.6; pointer-events:none;
   }
-  .map-owner-tag b{ color:#f2f3f5; }
+  .map-bg-tint{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at 50% 45%, rgba(15,77,36,0.2), rgba(2,4,3,0.88) 78%);
+    pointer-events:none;
+  }
   svg{ width:100%; height:auto; display:block; position:relative; z-index:2; }
-  .map-frame svg{ aspect-ratio:900/430; }
-
-  /* the real photo already reads as a globe — keep only the functional overlay drawing on top */
-  .globe-outline, .globe-grid, .continent, .globe-scan{ display:none; }
-
-  .node-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#eef1f5; paint-order:stroke; stroke:#020403; stroke-width:3px; }
-  .node-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#b7bdb2; paint-order:stroke; stroke:#020403; stroke-width:2.5px; }
-  .link-line{ stroke:#39ff6a; stroke-width:1; fill:none; opacity:0.35; }
-  .link-line.hot{ stroke:#39ff6a; stroke-width:1.3; stroke-dasharray:4 3; opacity:0.85; animation:dash 2.5s linear infinite; }
+  .globe-outline{ fill:none; stroke:var(--green-dim); stroke-width:1; }
+  .globe-grid{ fill:none; stroke:var(--green-dim); stroke-width:0.6; opacity:0.4; }
+  .continent{ fill:#0f4d24; opacity:0.14; stroke:var(--green-dim); stroke-width:0.6; }
+  .globe-scan{ fill:none; stroke:var(--green); stroke-width:1; opacity:0.4; transform-origin:450px 220px; animation:spin 14s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .node-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#dfe2e6; }
+  .node-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#8a9186; }
+  .link-line{ stroke:#0f4d24; stroke-width:1.2; fill:none; opacity:0.7; }
+  .link-line.hot{ stroke:#39ff6a; stroke-dasharray:4 3; animation:dash 2.5s linear infinite; }
   @keyframes dash{ to{ stroke-dashoffset:-20; } }
   .node-dot{ stroke:#020403; stroke-width:2; cursor:pointer; transition:r .15s ease, filter .15s ease; }
   .node-dot.command{ fill:#d4ff3d; }
   .node-dot.active{ fill:#39ff6a; }
   .node-dot.watch{ fill:#ff3b3b; }
-  .node-dot.dim{ fill:#8a958c; }
+  .node-dot.dim{ fill:#4d564f; }
   .node-dot.expanding{ fill:#3dd4ff; }
   .node-dot.expanding-ring{ fill:none; stroke:#3dd4ff; stroke-width:1.5; opacity:0.7; animation:ping 2s ease-out infinite; }
   .rival-mark{ fill:#ff3b3b; stroke:#020403; stroke-width:2; cursor:pointer; transition:filter .15s ease; }
   .rival-mark:hover{ filter:drop-shadow(0 0 6px #ff3b3b); }
-  .rival-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#ff9d9d; letter-spacing:1px; paint-order:stroke; stroke:#020403; stroke-width:3px; }
-  .rival-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#d99; paint-order:stroke; stroke:#020403; stroke-width:2.5px; }
+  .rival-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#ff8080; letter-spacing:1px; }
+  .rival-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#8a4a4a; }
   .rival-pulse{ fill:none; stroke:#ff3b3b; stroke-width:1; opacity:0.6; animation:ping 2.4s ease-out infinite; }
   @keyframes ping{ 0%{ r:8; opacity:0.7; } 100%{ r:20; opacity:0; } }
   .node-dot:hover{ filter:drop-shadow(0 0 6px currentColor); }
   .node-card{ transition:background .2s ease, border-color .2s ease; scroll-margin-top:20px; cursor:pointer; }
   .node-card.highlight{ background:rgba(57,255,106,0.1) !important; border-color:var(--green-dim); }
-
-  /* ---- world stats ribbon ---- */
-  .world-stats{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:1px;
-    background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:14px 28px 0;
-  }
-  .world-stats .cell{ background:rgba(6,10,7,0.85); padding:12px 14px; }
-  .world-stats .cell .lbl{ font-family:'Share Tech Mono', monospace; font-size:9.5px; letter-spacing:1.5px; color:var(--muted); }
-  .world-stats .cell .val{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:19px; color:var(--green); margin-top:2px; }
-  .world-stats .cell .val.acid{ color:var(--acid); }
-  .world-stats .cell .val.warn{ color:var(--warn); }
-
-  /* ---- firewall button + sweep overlay ---- */
-  .firewall-btn{
-    display:flex; align-items:center; gap:8px; font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:1.5px;
-    padding:8px 14px; border-radius:6px; border:1px solid #3dd4ff44; background:rgba(61,212,255,0.08); color:#7fe6ff;
-    cursor:pointer; transition:background .15s ease;
-  }
-  .firewall-btn:hover{ background:rgba(61,212,255,0.16); }
-  .firewall-btn:disabled{ opacity:0.5; cursor:default; }
-  .firewall-btn .ic{ font-size:13px; }
-
-  .firewall-overlay{
-    position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; flex-direction:column;
-    background:radial-gradient(ellipse at 50% 50%, rgba(6,20,26,0.55), rgba(2,4,3,0.9));
-    opacity:0; pointer-events:none; transition:opacity .25s ease;
-  }
-  .firewall-overlay.on{ opacity:1; pointer-events:all; }
-  .firewall-overlay .ring{
-    width:120px; height:120px; border-radius:50%; border:2px solid #3dd4ff; position:relative; margin-bottom:14px;
-    box-shadow:0 0 24px rgba(61,212,255,0.5) inset, 0 0 24px rgba(61,212,255,0.3);
-  }
-  .firewall-overlay .ring::before, .firewall-overlay .ring::after{
-    content:''; position:absolute; inset:-2px; border-radius:50%; border:2px solid #3dd4ff88;
-    animation:fwping 1.6s ease-out infinite;
-  }
-  .firewall-overlay .ring::after{ animation-delay:.8s; }
-  @keyframes fwping{ 0%{ transform:scale(1); opacity:0.9; } 100%{ transform:scale(1.9); opacity:0; } }
-  .firewall-overlay .sweep{ position:absolute; inset:6px; border-radius:50%; overflow:hidden; }
-  .firewall-overlay .sweep::before{
-    content:''; position:absolute; inset:0; background:conic-gradient(from 0deg, transparent 0deg, #3dd4ff99 40deg, transparent 90deg);
-    animation:fwspin 1.1s linear infinite;
-  }
-  @keyframes fwspin{ to{ transform:rotate(360deg); } }
-  .firewall-overlay .shield{ font-size:34px; position:relative; z-index:2; }
-  .firewall-overlay .txt{ font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:2px; color:#bdf3ff; text-align:center; }
-  .firewall-overlay .txt .count{ color:#3dd4ff; font-weight:700; }
-  .firewall-overlay .bar{ width:220px; height:4px; background:#0a1a1e; border-radius:2px; overflow:hidden; margin-top:10px; }
-  .firewall-overlay .bar i{ display:block; height:100%; width:0%; background:#3dd4ff; animation:fwbar 2.4s ease forwards; }
-  @keyframes fwbar{ to{ width:100%; } }
 
   .legend{ display:flex; gap:18px; padding:14px 28px 22px; flex-wrap:wrap; }
   .legend .item{ display:flex; align-items:center; gap:7px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
@@ -114,7 +75,7 @@
   .legend .sw.command{ background:#d4ff3d; }
   .legend .sw.active{ background:#39ff6a; }
   .legend .sw.watch{ background:#ff3b3b; }
-  .legend .sw.dim{ background:#8a958c; }
+  .legend .sw.dim{ background:#4d564f; }
   .legend .sw.expanding{ background:#3dd4ff; }
 
   .node-panel{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
@@ -122,7 +83,7 @@
   .node-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:14.5px; color:#f2f3f5; }
   .node-card .st{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:3px; }
 
-  .chatter-panel{ margin:0 28px 20px; padding:14px 16px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
+  .chatter-panel{ margin:0 4px 4px; padding:14px 16px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
   .chatter-head{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--green); margin-bottom:10px; display:flex; justify-content:space-between; }
   .chatter-line{ font-family:'Share Tech Mono', monospace; font-size:12px; color:#c3c8cd; line-height:1.9; opacity:0; animation:fadein .4s ease forwards; }
   @keyframes fadein{ to{ opacity:1; } }
@@ -130,42 +91,52 @@
   .chatter-cursor{ display:inline-block; width:7px; height:12px; background:var(--green); animation:blink 1s step-start infinite; vertical-align:-1px; }
   @keyframes blink{ 50%{ opacity:0; } }
 
-  /* ---- dispatch console: send a message/command to any node on the map ---- */
-  .dispatch-panel{ margin:0 28px 30px; padding:16px 16px 18px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
-  .dispatch-head{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--green); margin-bottom:4px; }
-  .dispatch-sub{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-bottom:12px; }
-  .dispatch-form{ display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; }
-  .dispatch-form select, .dispatch-form textarea{
-    font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--text);
-    background:#050506; border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+  .convo-line.me{ color:#a9d4ff; }
+  .code-chip{
+    display:inline-block; background:rgba(61,212,255,0.08); border:1px solid #1c4a5c; color:#3dd4ff;
+    border-radius:4px; padding:1px 6px; letter-spacing:0.5px;
   }
-  .dispatch-form select{ flex:0 0 190px; }
-  .dispatch-form textarea{ flex:1 1 220px; min-width:180px; resize:vertical; min-height:38px; }
-  .dispatch-form button{
-    font-family:'Share Tech Mono', monospace; font-size:11.5px; letter-spacing:1.5px;
-    padding:9px 18px; border-radius:6px; border:1px solid var(--green-dim);
-    background:rgba(57,255,106,0.1); color:var(--green); cursor:pointer;
-  }
-  .dispatch-form button:hover{ background:rgba(57,255,106,0.18); }
-  .dispatch-form button:disabled{ opacity:0.45; cursor:default; }
+  .ticks{ font-size:10px; color:var(--muted); margin-left:6px; }
+  .ticks.delivered{ color:var(--green); }
+  .node-typing{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); font-style:italic; opacity:1 !important; }
 
-  .dispatch-log{ margin-top:14px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
-  .dispatch-entry{ border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:rgba(10,18,12,0.55); }
-  .dispatch-entry .row1{ display:flex; justify-content:space-between; gap:10px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
-  .dispatch-entry .row1 .target{ color:#f2f3f5; font-weight:700; }
-  .dispatch-entry .txt{ font-family:'Share Tech Mono', monospace; font-size:12px; color:#c3c8cd; margin-top:6px; }
-  .dispatch-entry .status{ font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:1px; margin-top:8px; display:flex; align-items:center; gap:6px; }
-  .dispatch-entry .status.pending{ color:var(--acid); }
-  .dispatch-entry .status.done{ color:var(--green); }
-  .dispatch-entry .reply{ margin-top:6px; padding-top:6px; border-top:1px dashed var(--line); font-family:'Share Tech Mono', monospace; font-size:11.5px; color:#9fe6b0; }
-  .dispatch-entry .code{ color:var(--acid); }
-  .dispatch-empty{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); padding:6px 2px; }
+  .transmit-row{ display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+  .transmit-input{
+    flex:1; background:#0a0b0d; border:1px solid var(--line); border-radius:6px;
+    padding:8px 10px; color:#dfe2e6; font-family:'Share Tech Mono', monospace; font-size:12px;
+  }
+  .transmit-input:focus{ outline:none; border-color:var(--green-dim); }
+
+  /* ---- firewall overlay ---- */
+  .firewall-overlay{
+    position:fixed; inset:0; z-index:80; background:rgba(2,6,3,0.94);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .firewall-overlay.active{ opacity:1; pointer-events:all; }
+  .firewall-grid{
+    position:absolute; inset:0; opacity:0.3;
+    background-image:linear-gradient(var(--green-dim) 1px, transparent 1px), linear-gradient(90deg, var(--green-dim) 1px, transparent 1px);
+    background-size:28px 28px; animation:gridScan 2.2s linear infinite;
+  }
+  @keyframes gridScan{ from{ background-position:0 0; } to{ background-position:0 28px; } }
+  .firewall-shield{ font-size:58px; filter:drop-shadow(0 0 18px var(--green)); animation:shieldPulse 1.1s ease-in-out infinite; position:relative; z-index:2; }
+  .firewall-overlay.down .firewall-shield{ filter:drop-shadow(0 0 18px var(--warn)); }
+  @keyframes shieldPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.14); } }
+  .firewall-lines{ margin-top:22px; font-family:'Share Tech Mono', monospace; font-size:12.5px; color:var(--green); text-align:center; min-height:110px; position:relative; z-index:2; padding:0 20px; }
+  .firewall-lines div{ opacity:0; animation:fadein .3s ease forwards; margin-bottom:6px; }
 </style>
 </head>
 <body>
 <canvas id="matrixRain"></canvas>
 <div class="vignette"></div>
 <div class="scanlines"></div>
+
+<div class="firewall-overlay" id="firewallOverlay">
+  <div class="firewall-grid"></div>
+  <div class="firewall-shield" id="firewallShield">&#128737;</div>
+  <div class="firewall-lines" id="firewallLines"></div>
+</div>
 
 <div class="wrap">
   <div class="browser-chrome">
@@ -193,22 +164,21 @@
       <p>NINE NODES ACROSS SIX CONTINENTS &middot; 3 RIVAL ORGS TRACKED &middot; LIVE INTERCEPT FEED ON SELECT</p>
     </div>
 
-    <div class="world-stats">
-      <div class="cell"><div class="lbl">COVERAGE</div><div class="val">6 CONTINENTS</div></div>
-      <div class="cell"><div class="lbl">REGIONS MAPPED</div><div class="val acid">190+</div></div>
-      <div class="cell"><div class="lbl">MESH UPTIME</div><div class="val">99.98%</div></div>
-      <div class="cell"><div class="lbl">RIVAL ORGS TRACKED</div><div class="val warn">3</div></div>
-      <div class="cell"><div class="lbl">FIREWALL BLOCKS</div><div class="val" id="statFirewall">0</div></div>
-      <div class="cell"><div class="lbl">CHAIN OF COMMAND</div><div class="val acid">DIESEL</div></div>
-    </div>
-
     <div class="map-wrap">
-      <div class="map-frame" id="mapFrame">
-        <div class="map-frame-top">
-          <span class="map-owner-tag">GLOBAL MESH &middot; OPERATED BY <b>DIESEL</b></span>
-          <button class="firewall-btn" id="firewallBtn" onclick="runFirewall()"><span class="ic">&#128737;</span> RUN FIREWALL SWEEP</button>
-        </div>
+      <div class="map-controls">
+        <button class="firewall-btn" id="firewallBtn" onclick="activateFirewall()">&#128737; ENGAGE FIREWALL</button>
+        <div class="firewall-status" id="firewallStatus">STATUS: OPEN</div>
+      </div>
+      <div class="world-stats">
+        <div><b>6</b> continents mapped</div>
+        <div><b>9</b> active nodes</div>
+        <div><b>3</b> hostile orgs tracked</div>
+        <div><b>24/7</b> satellite overlay</div>
+      </div>
 
+      <div class="map-frame">
+        <img class="map-bg-img" src="img/world-map.png" alt="World map overlay">
+        <div class="map-bg-tint"></div>
         <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
           <ellipse class="globe-outline" cx="450" cy="200" rx="330" ry="185"></ellipse>
           <ellipse class="globe-grid" cx="450" cy="200" rx="330" ry="60"></ellipse>
@@ -235,40 +205,40 @@
 
           <circle class="node-dot command" cx="480" cy="90" r="13" data-node="COMMAND-01" onclick="selectNode(this,'COMMAND-01')"></circle>
           <text class="node-label" x="480" y="74" text-anchor="middle">COMMAND-01</text>
-          <text class="node-sub" x="480" y="113" text-anchor="middle">Berlin node</text>
+          <text class="node-sub" x="480" y="113" text-anchor="middle">&#127465;&#127466; Berlin node</text>
 
           <circle class="node-dot active" cx="700" cy="100" r="9" data-node="GRID-77" onclick="selectNode(this,'GRID-77')"></circle>
           <text class="node-label" x="700" y="85" text-anchor="middle">GRID-77</text>
-          <text class="node-sub" x="700" y="123" text-anchor="middle">Tokyo relay</text>
+          <text class="node-sub" x="700" y="123" text-anchor="middle">&#127471;&#127477; Tokyo relay</text>
 
           <circle class="node-dot active" cx="160" cy="110" r="9" data-node="RELAY-9" onclick="selectNode(this,'RELAY-9')"></circle>
           <text class="node-label" x="160" y="95" text-anchor="middle">RELAY-9</text>
-          <text class="node-sub" x="160" y="133" text-anchor="middle">New York ghost</text>
+          <text class="node-sub" x="160" y="133" text-anchor="middle">&#127482;&#127480; New York ghost</text>
 
           <circle class="node-dot dim" cx="195" cy="270" r="9" data-node="SAFEHOUSE-4" onclick="selectNode(this,'SAFEHOUSE-4')"></circle>
           <text class="node-label" x="195" y="295" text-anchor="middle">SAFEHOUSE-4</text>
-          <text class="node-sub" x="195" y="310" text-anchor="middle">Rio safehouse</text>
+          <text class="node-sub" x="195" y="310" text-anchor="middle">&#127463;&#127479; Rio safehouse</text>
 
           <circle class="node-dot watch" cx="600" cy="75" r="9" data-node="BLACKVAULT-13" onclick="selectNode(this,'BLACKVAULT-13')"></circle>
           <text class="node-label" x="600" y="60" text-anchor="middle">BLACKVAULT-13</text>
-          <text class="node-sub" x="600" y="98" text-anchor="middle">Moscow vault</text>
+          <text class="node-sub" x="600" y="98" text-anchor="middle">&#127479;&#127482; Moscow vault</text>
 
           <circle class="node-dot dim" cx="650" cy="150" r="9" data-node="VAULT-13" onclick="selectNode(this,'VAULT-13')"></circle>
           <text class="node-label" x="650" y="135" text-anchor="middle">VAULT-13</text>
-          <text class="node-sub" x="650" y="173" text-anchor="middle">Singapore archive</text>
+          <text class="node-sub" x="650" y="173" text-anchor="middle">&#127480;&#127468; Singapore archive</text>
 
           <circle class="node-dot expanding-ring" cx="470" cy="200" r="8"></circle>
           <circle class="node-dot expanding" cx="470" cy="200" r="9" data-node="CAIRO-OUTPOST" onclick="selectNode(this,'CAIRO-OUTPOST')"></circle>
           <text class="node-label" x="470" y="185" text-anchor="middle">CAIRO OUTPOST</text>
-          <text class="node-sub" x="470" y="223" text-anchor="middle">new territory</text>
+          <text class="node-sub" x="470" y="223" text-anchor="middle">&#127466;&#127468; new territory</text>
 
           <circle class="node-dot active" cx="735" cy="320" r="9" data-node="SYDNEY-WATCH" onclick="selectNode(this,'SYDNEY-WATCH')"></circle>
           <text class="node-label" x="735" y="305" text-anchor="middle">SYDNEY WATCH</text>
-          <text class="node-sub" x="735" y="343" text-anchor="middle">satellite reach</text>
+          <text class="node-sub" x="735" y="343" text-anchor="middle">&#127462;&#127482; satellite reach</text>
 
           <circle class="node-dot dim" cx="460" cy="260" r="9" data-node="LAGOS-LINE" onclick="selectNode(this,'LAGOS-LINE')"></circle>
           <text class="node-label" x="460" y="280" text-anchor="middle">LAGOS LINE</text>
-          <text class="node-sub" x="460" y="295" text-anchor="middle">dormant relay</text>
+          <text class="node-sub" x="460" y="295" text-anchor="middle">&#127475;&#127468; dormant relay</text>
 
           <circle class="rival-pulse" cx="640" cy="115" r="8"></circle>
           <rect class="rival-mark" x="632" y="107" width="16" height="16" transform="rotate(45 640 115)" data-node="THE-SYNDICATE" onclick="selectNode(this,'THE-SYNDICATE')"></rect>
@@ -285,20 +255,15 @@
           <text class="rival-label" x="512" y="352" text-anchor="middle">OBSIDIAN CIRCLE</text>
           <text class="rival-sub" x="512" y="367" text-anchor="middle">rival &middot; southern outpost</text>
         </svg>
-
-        <div class="firewall-overlay" id="firewallOverlay">
-          <div class="ring">
-            <div class="sweep"></div>
-            <div class="shield" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">&#128737;</div>
-          </div>
-          <div class="txt">SCANNING PERIMETER TRAFFIC...<br>THREATS BLOCKED: <span class="count" id="fwCount">0</span></div>
-          <div class="bar"><i></i></div>
-        </div>
       </div>
       <div class="chatter-panel" id="chatterPanel">
         <div class="chatter-head"><span id="chatterTitle">// SELECT A NODE ABOVE</span><span id="chatterStatus"></span></div>
         <div id="chatterBody" style="min-height:70px;">
-          <div class="chatter-line" style="animation-delay:0s">Tap any node on the globe to pull its live intercept feed.</div>
+          <div class="chatter-line" style="animation-delay:0s">Tap any node on the globe to pull its live intercept feed, then transmit a message directly to it.</div>
+        </div>
+        <div class="transmit-row" id="transmitRow" style="display:none;">
+          <input class="transmit-input" id="transmitInput" type="text" placeholder="Transmit a message to this node…">
+          <button class="btn" onclick="sendNodeMessage()">SEND</button>
         </div>
       </div>
     </div>
@@ -313,29 +278,18 @@
     </div>
 
     <div class="node-panel" id="nodePanel">
-      <div class="node-card" id="card-COMMAND-01" onclick="selectNode(null,'COMMAND-01')"><div class="nm">COMMAND-01</div><div class="st">Berlin &middot; core node &middot; commander clearance</div></div>
-      <div class="node-card" id="card-GRID-77" onclick="selectNode(null,'GRID-77')"><div class="nm">GRID-77</div><div class="st">Tokyo &middot; seized &middot; zero trace left</div></div>
-      <div class="node-card" id="card-RELAY-9" onclick="selectNode(null,'RELAY-9')"><div class="nm">RELAY-9</div><div class="st">New York &middot; signal routing &middot; 3 hops active</div></div>
-      <div class="node-card" id="card-SAFEHOUSE-4" onclick="selectNode(null,'SAFEHOUSE-4')"><div class="nm">SAFEHOUSE-4</div><div class="st">Rio &middot; dormant &middot; held in reserve</div></div>
-      <div class="node-card" id="card-BLACKVAULT-13" onclick="selectNode(null,'BLACKVAULT-13')"><div class="nm">BLACKVAULT-13</div><div class="st">Moscow &middot; rival chatter &middot; watching closely</div></div>
-      <div class="node-card" id="card-VAULT-13" onclick="selectNode(null,'VAULT-13')"><div class="nm">VAULT-13</div><div class="st">Singapore &middot; encrypted archive &middot; AES-∞</div></div>
-      <div class="node-card" id="card-CAIRO-OUTPOST" onclick="selectNode(null,'CAIRO-OUTPOST')"><div class="nm">CAIRO OUTPOST</div><div class="st">Cairo &middot; new territory &middot; SABLE on site</div></div>
-      <div class="node-card" id="card-SYDNEY-WATCH" onclick="selectNode(null,'SYDNEY-WATCH')"><div class="nm">SYDNEY WATCH</div><div class="st">Sydney &middot; satellite reach &middot; live monitoring</div></div>
-      <div class="node-card" id="card-LAGOS-LINE" onclick="selectNode(null,'LAGOS-LINE')"><div class="nm">LAGOS LINE</div><div class="st">Lagos &middot; dormant relay &middot; held in reserve</div></div>
+      <div class="node-card" id="card-COMMAND-01" onclick="selectNode(null,'COMMAND-01')"><div class="nm">COMMAND-01</div><div class="st">&#127465;&#127466; Berlin &middot; core node &middot; commander clearance</div></div>
+      <div class="node-card" id="card-GRID-77" onclick="selectNode(null,'GRID-77')"><div class="nm">GRID-77</div><div class="st">&#127471;&#127477; Tokyo &middot; seized &middot; zero trace left</div></div>
+      <div class="node-card" id="card-RELAY-9" onclick="selectNode(null,'RELAY-9')"><div class="nm">RELAY-9</div><div class="st">&#127482;&#127480; New York &middot; signal routing &middot; 3 hops active</div></div>
+      <div class="node-card" id="card-SAFEHOUSE-4" onclick="selectNode(null,'SAFEHOUSE-4')"><div class="nm">SAFEHOUSE-4</div><div class="st">&#127463;&#127479; Rio &middot; dormant &middot; held in reserve</div></div>
+      <div class="node-card" id="card-BLACKVAULT-13" onclick="selectNode(null,'BLACKVAULT-13')"><div class="nm">BLACKVAULT-13</div><div class="st">&#127479;&#127482; Moscow &middot; rival chatter &middot; watching closely</div></div>
+      <div class="node-card" id="card-VAULT-13" onclick="selectNode(null,'VAULT-13')"><div class="nm">VAULT-13</div><div class="st">&#127480;&#127468; Singapore &middot; encrypted archive &middot; AES-∞</div></div>
+      <div class="node-card" id="card-CAIRO-OUTPOST" onclick="selectNode(null,'CAIRO-OUTPOST')"><div class="nm">CAIRO OUTPOST</div><div class="st">&#127466;&#127468; Cairo &middot; new territory &middot; SABLE on site</div></div>
+      <div class="node-card" id="card-SYDNEY-WATCH" onclick="selectNode(null,'SYDNEY-WATCH')"><div class="nm">SYDNEY WATCH</div><div class="st">&#127462;&#127482; Sydney &middot; satellite reach &middot; live monitoring</div></div>
+      <div class="node-card" id="card-LAGOS-LINE" onclick="selectNode(null,'LAGOS-LINE')"><div class="nm">LAGOS LINE</div><div class="st">&#127475;&#127468; Lagos &middot; dormant relay &middot; held in reserve</div></div>
       <div class="node-card" id="card-THE-SYNDICATE" onclick="selectNode(null,'THE-SYNDICATE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">THE SYNDICATE</div><div class="st">Hong Kong sector &middot; rival &middot; encrypted, unclaimed</div></div>
       <div class="node-card" id="card-NULL-COLLECTIVE" onclick="selectNode(null,'NULL-COLLECTIVE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">NULL COLLECTIVE</div><div class="st">Unclaimed north &middot; rival &middot; identity unconfirmed</div></div>
       <div class="node-card" id="card-OBSIDIAN-CIRCLE" onclick="selectNode(null,'OBSIDIAN-CIRCLE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">OBSIDIAN CIRCLE</div><div class="st">Southern outpost &middot; rival &middot; watching COMMAND-01</div></div>
-    </div>
-
-    <div class="dispatch-panel">
-      <div class="dispatch-head">// DISPATCH CONSOLE</div>
-      <div class="dispatch-sub">Send any directive to any point on the mesh. Queued instantly with a tracking code &middot; field confirms execution in ~3 minutes.</div>
-      <div class="dispatch-form">
-        <select id="dispatchTarget"></select>
-        <textarea id="dispatchText" placeholder="Type your order or message to the node..." rows="1"></textarea>
-        <button id="dispatchBtn" onclick="sendDispatch()">TRANSMIT</button>
-      </div>
-      <div class="dispatch-log" id="dispatchLog"></div>
     </div>
 
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
@@ -410,28 +364,101 @@ const NODE_DATA = {
   ]}
 };
 
-// flavor replies used once a dispatch's 3-minute window resolves
-const REPLY_BANK = {
-  "COMMAND-01": ["Directive logged and actioned at the source. Board updated.", "Confirmed. All fifteen units notified of the new order."],
-  "GRID-77": ["GHOST: order received and carried out. Node stayed quiet the whole time.", "Done. No trace left behind, as always."],
-  "RELAY-9": ["ECHO: routed and executed clean across all three hops.", "Order carried out. Line integrity unaffected."],
-  "SAFEHOUSE-4": ["RELAY: directive received, executed from standby without waking the node.", "Handled quietly. House stayed dark throughout."],
-  "BLACKVAULT-13": ["FROST: order acknowledged. Kept it subtle given the rival chatter nearby.", "Done, carefully. Didn't want to spook whoever's watching."],
-  "VAULT-13": ["CIPHER: executed and re-sealed. Archive integrity unaffected.", "Order carried out under full encryption. No anomalies."],
-  "CAIRO-OUTPOST": ["SABLE: directive complete. Ground's still clean.", "Done. Fourth node timeline unaffected."],
-  "SYDNEY-WATCH": ["VORTEX: order carried out from the satellite link. All quiet.", "Handled. Southern approach still calm."],
-  "LAGOS-LINE": ["ANCHOR: brought the relay hot just long enough to execute, then dark again.", "Order carried out. Back to dormant now."],
-  "THE-SYNDICATE": ["UNVERIFIED SOURCE: '...message received. We'll consider it...'", "No formal confirmation — signal just went quiet after delivery."],
-  "NULL-COLLECTIVE": ["SIGNAL GHOSTED: delivery confirmed by a single ping, then silence.", "No reply text — just an acknowledgment tone and nothing else."],
-  "OBSIDIAN-CIRCLE": ["FROST: they received it. No telling what they'll do with it.", "Delivery confirmed. Recommend watching this one closely now."]
+const RIVAL_NODES = ['THE-SYNDICATE', 'NULL-COLLECTIVE', 'OBSIDIAN-CIRCLE'];
+
+const CODE_REPLIES = {
+  command: [
+    "ACK. Sync key rotated \u2014 board reference 7F-C012-A9.",
+    "Copy that. Relay stamp DL-9931-GREEN, all channels nominal.",
+    "Confirmed at command level. Handshake code CMD-0451-OK."
+  ],
+  active: [
+    "Received. Node handshake RLY-2208-B3, line's clean.",
+    "Copy. Passing you a fresh access token AX7-31Q-99Z.",
+    "Got it \u2014 routing code TRK-5567-M attached, no drops."
+  ],
+  dormant: [
+    "Message logged. Wake code on file DRM-0099-Z, standing by.",
+    "Copy, staying dark. Reference stamp SLP-4471-Q for the record."
+  ],
+  watch: [
+    "Noted. Watch-flag raised \u2014 code WCH-8820-R, keep this thread quiet.",
+    "Copy that. Cross-ref key VGL-1190-T logged for review."
+  ],
+  expanding: [
+    "Received. New sector key EXP-6634-N, ground team briefed.",
+    "Copy. Provisional access code TER-2290-K issued for this line."
+  ],
+  rival: [
+    "INTERCEPT: \"...received, COMMAND-01. Make of this what you will \u2014 0X19-F3...\"",
+    "INTERCEPT: unknown handle replies with a single fragment \u2014 \"RUN-4482-DARK\"",
+    "INTERCEPT: \"...your words mean nothing here. Ours: NULL-0007...\""
+  ]
 };
 
-const NODE_LABELS = {
-  "COMMAND-01":"COMMAND-01 · Berlin", "GRID-77":"GRID-77 · Tokyo", "RELAY-9":"RELAY-9 · New York",
-  "SAFEHOUSE-4":"SAFEHOUSE-4 · Rio", "BLACKVAULT-13":"BLACKVAULT-13 · Moscow", "VAULT-13":"VAULT-13 · Singapore",
-  "CAIRO-OUTPOST":"CAIRO OUTPOST · Cairo", "SYDNEY-WATCH":"SYDNEY WATCH · Sydney", "LAGOS-LINE":"LAGOS LINE · Lagos",
-  "THE-SYNDICATE":"⚠ THE SYNDICATE · rival", "NULL-COLLECTIVE":"⚠ NULL COLLECTIVE · rival", "OBSIDIAN-CIRCLE":"⚠ OBSIDIAN CIRCLE · rival"
-};
+let currentNode = null;
+
+function nodeGroup(name){
+  if(RIVAL_NODES.includes(name)) return 'rival';
+  const data = NODE_DATA[name];
+  if(!data) return 'active';
+  if(data.status === 'COMMAND') return 'command';
+  if(data.status === 'DORMANT') return 'dormant';
+  if(data.status === 'WATCHING' || data.status === 'HOSTILE') return 'watch';
+  if(data.status === 'EXPANDING') return 'expanding';
+  return 'active';
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function appendConvoLine(who, txt){
+  const body = document.getElementById('chatterBody');
+  const div = document.createElement('div');
+  div.className = 'chatter-line convo-line ' + who;
+  div.style.opacity = '1';
+  if(who === 'me'){
+    div.innerHTML = '<span class="tag">&gt;</span>YOU: ' + escapeHtml(txt) + ' <span class="ticks sending">&#10003;</span>';
+    body.appendChild(div);
+    setTimeout(() => {
+      const tick = div.querySelector('.ticks');
+      if(tick){ tick.innerHTML = '&#10003;&#10003; delivered'; tick.classList.add('delivered'); }
+    }, 600);
+  } else {
+    div.innerHTML = '<span class="tag" style="color:#3dd4ff;">&gt;</span>' + currentNode + ': <span class="code-chip">' + escapeHtml(txt) + '</span>';
+    body.appendChild(div);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+function sendNodeMessage(){
+  if(!currentNode) return;
+  const input = document.getElementById('transmitInput');
+  const txt = input.value.trim();
+  if(!txt) return;
+
+  DieselSound.send();
+  DieselState.addReply(currentNode, 'me', txt);
+  input.value = '';
+  appendConvoLine('me', txt);
+
+  const body = document.getElementById('chatterBody');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chatter-line node-typing';
+  typingDiv.textContent = currentNode + ' is receiving…';
+  body.appendChild(typingDiv);
+  body.scrollTop = body.scrollHeight;
+
+  setTimeout(() => {
+    typingDiv.remove();
+    const pool = CODE_REPLIES[nodeGroup(currentNode)] || CODE_REPLIES.active;
+    const reply = pool[Math.floor(Math.random() * pool.length)];
+    DieselState.addReply(currentNode, 'them', reply);
+    DieselSound.receive();
+    appendConvoLine('them', reply);
+  }, 1300 + Math.random() * 1100);
+}
 
 function selectNode(circle, name){
   DieselSound.type();
@@ -443,147 +470,91 @@ function selectNode(circle, name){
   }
   const data = NODE_DATA[name];
   if(!data) return;
+  currentNode = name;
   const statusText = card ? card.querySelector('.st').textContent : '';
 
   document.getElementById('chatterTitle').textContent = '// ' + name + ' INTERCEPT';
   document.getElementById('chatterStatus').textContent = data.status;
+  document.getElementById('transmitRow').style.display = 'flex';
 
   const body = document.getElementById('chatterBody');
-  body.innerHTML = `<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">${statusText}</div>`;
+  body.innerHTML = '<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">' + statusText + '</div>';
 
   data.chatter.forEach((line, i) => {
     setTimeout(() => {
       const div = document.createElement('div');
       div.className = 'chatter-line';
-      div.innerHTML = `<span class="tag">&gt;</span>${line}`;
+      div.innerHTML = '<span class="tag">&gt;</span>' + line;
       body.appendChild(div);
       if(i === data.chatter.length - 1){
         const cursor = document.createElement('span');
         cursor.className = 'chatter-cursor';
         div.appendChild(cursor);
+
+        setTimeout(() => {
+          const s = DieselState.get();
+          const stored = s.messageReplies[name] || [];
+          stored.forEach(r => appendConvoLine(r.who, r.txt));
+        }, 300);
       }
     }, 250 + i * 550);
   });
-
-  // pre-select this node as the dispatch target too, for a fast follow-up order
-  const sel = document.getElementById('dispatchTarget');
-  if(sel) sel.value = name;
 }
 
-// ---------- firewall sweep ----------
-let fwRunning = false;
-function runFirewall(){
-  if(fwRunning) return;
-  fwRunning = true;
-  const btn = document.getElementById('firewallBtn');
-  const overlay = document.getElementById('firewallOverlay');
-  btn.disabled = true;
-  overlay.classList.add('on');
+function activateFirewall(){
   DieselSound.alert();
+  const result = DieselState.toggleLockdown();
+  const lockdown = result.lockdown;
+  const overlay = document.getElementById('firewallOverlay');
+  const linesEl = document.getElementById('firewallLines');
+  const btn = document.getElementById('firewallBtn');
+  const statusEl = document.getElementById('firewallStatus');
 
-  const countEl = document.getElementById('fwCount');
-  const result = DieselState.triggerFirewall();
-  let shown = 0;
-  const step = setInterval(() => {
-    shown += Math.ceil(result.blocked / 8) || 1;
-    if(shown >= result.blocked){ shown = result.blocked; clearInterval(step); }
-    countEl.textContent = shown;
-  }, 220);
+  overlay.classList.toggle('down', !lockdown);
+  overlay.classList.add('active');
+  linesEl.innerHTML = '';
+
+  const steps = lockdown ? [
+    'INITIATING PERIMETER LOCKDOWN…',
+    'SCANNING 9 NODES FOR INTRUSIONS…',
+    'BLOCKING UNVERIFIED HANDSHAKES…',
+    'ENCRYPTING ACTIVE TUNNELS…',
+    'FIREWALL ENGAGED — NODE PERIMETER SECURE'
+  ] : [
+    'STANDING DOWN PERIMETER LOCKDOWN…',
+    'RELEASING FILTERED CONNECTIONS…',
+    'RESUMING NORMAL TRAFFIC…',
+    'FIREWALL DISENGAGED — NODE OPEN'
+  ];
+
+  steps.forEach((line, i) => {
+    setTimeout(() => {
+      const d = document.createElement('div');
+      d.textContent = '> ' + line;
+      linesEl.appendChild(d);
+    }, i * 480);
+  });
 
   setTimeout(() => {
-    overlay.classList.remove('on');
-    btn.disabled = false;
-    fwRunning = false;
-    DieselSound.success();
-    document.getElementById('statFirewall').textContent = DieselState.get().firewallBlocks;
-  }, 2500);
+    overlay.classList.remove('active');
+    btn.textContent = lockdown ? '\u{1F6E1}\uFE0F FIREWALL ENGAGED' : '\u{1F6E1}\uFE0F ENGAGE FIREWALL';
+    btn.classList.toggle('on', lockdown);
+    statusEl.textContent = 'STATUS: ' + (lockdown ? 'LOCKED' : 'OPEN');
+    DieselUI.toast(lockdown ? 'Firewall engaged — perimeter secure' : 'Firewall disengaged — node open', { kind: lockdown ? 'warn' : 'ok' });
+  }, steps.length * 480 + 750);
 }
 
-// ---------- dispatch console ----------
-function buildTargetOptions(){
-  const sel = document.getElementById('dispatchTarget');
-  sel.innerHTML = '';
-  Object.keys(NODE_LABELS).forEach(id => {
-    const opt = document.createElement('option');
-    opt.value = id; opt.textContent = NODE_LABELS[id];
-    sel.appendChild(opt);
-  });
-}
-
-function timeLeftLabel(ts){
-  const remain = DieselState.DISPATCH_DELAY_MS - (Date.now() - ts);
-  if(remain <= 0) return '00:00';
-  const s = Math.ceil(remain / 1000);
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-}
-
-function renderDispatchLog(){
-  const log = document.getElementById('dispatchLog');
-  const items = DieselState.getDispatches();
-  if(!items.length){
-    log.innerHTML = '<div class="dispatch-empty">No transmissions yet — send your first order to any node above.</div>';
-    return;
+(function initFirewallUI(){
+  const s = DieselState.get();
+  if(s.lockdown){
+    document.getElementById('firewallBtn').textContent = '\u{1F6E1}\uFE0F FIREWALL ENGAGED';
+    document.getElementById('firewallBtn').classList.add('on');
+    document.getElementById('firewallStatus').textContent = 'STATUS: LOCKED';
   }
-  log.innerHTML = items.map(d => {
-    const label = NODE_LABELS[d.target] || d.target;
-    if(d.status === 'pending'){
-      return `<div class="dispatch-entry" data-id="${d.id}">
-        <div class="row1"><span class="target">→ ${label}</span><span>TRACKING <span class="code">${d.code}</span></span></div>
-        <div class="txt">${escapeHtml(d.text)}</div>
-        <div class="status pending"><span class="chatter-cursor" style="width:6px;height:10px;"></span> AWAITING CONFIRMATION — ETA <span class="eta">${timeLeftLabel(d.ts)}</span></div>
-      </div>`;
-    }
-    return `<div class="dispatch-entry" data-id="${d.id}">
-      <div class="row1"><span class="target">→ ${label}</span><span>TRACKING <span class="code">${d.code}</span></span></div>
-      <div class="txt">${escapeHtml(d.text)}</div>
-      <div class="status done">&#9989; EXECUTED — CONFIRMATION <span class="code">${d.doneCode}</span></div>
-      <div class="reply">${escapeHtml(d.reply)}</div>
-    </div>`;
-  }).join('');
-}
+})();
 
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function sendDispatch(){
-  const target = document.getElementById('dispatchTarget').value;
-  const textEl = document.getElementById('dispatchText');
-  const text = textEl.value.trim();
-  if(!text) { textEl.focus(); return; }
-
-  const entry = DieselState.addDispatch(target, text);
-  DieselSound.send();
-  textEl.value = '';
-  renderDispatchLog();
-
-  // small immediate bot ack in the chatter panel so it feels alive right away
-  document.getElementById('chatterTitle').textContent = '// TRANSMISSION SENT';
-  document.getElementById('chatterStatus').textContent = 'QUEUED';
-  document.getElementById('chatterBody').innerHTML =
-    `<div class="chatter-line" style="opacity:1;"><span class="tag">&gt;</span>BOT: transmission to ${NODE_LABELS[target]} queued — tracking code <b style="color:var(--acid)">${entry.code}</b>. Expect field confirmation shortly.</div>`;
-}
-
-function tickDispatches(){
-  const resolved = DieselState.resolveDueDispatches(REPLY_BANK);
-  if(resolved.length){
-    DieselSound.receive();
-    setTimeout(() => DieselSound.success(), 150);
-  }
-  renderDispatchLog();
-}
-
-buildTargetOptions();
-renderDispatchLog();
-setInterval(tickDispatches, 1000);
-document.getElementById('statFirewall').textContent = DieselState.get().firewallBlocks;
-
-document.getElementById('dispatchText').addEventListener('keydown', e => {
-  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendDispatch(); }
+document.getElementById('transmitInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') sendNodeMessage();
 });
 
 if ('serviceWorker' in navigator) {
