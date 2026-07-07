@@ -27,7 +27,9 @@
     width:104px; height:104px; border-radius:14px; background:#08090b; border:2px solid var(--green);
     box-shadow:0 0 0 4px #0d0f13, 0 0 24px rgba(57,255,106,0.35);
     display:flex; align-items:center; justify-content:center; font-size:44px; color:var(--green); flex-shrink:0;
+    overflow:hidden;
   }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
   .id-block{ padding-top:52px; flex:1; min-width:240px; }
   .name-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .name{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:30px; letter-spacing:1px; color:#f2f3f5; text-shadow:0 0 18px rgba(57,255,106,0.35); }
@@ -112,7 +114,7 @@
     <div class="banner"></div>
 
     <div class="head">
-      <div class="avatar">&#9760;</div>
+      <div class="avatar"><img src="icons/icon-512.png" alt="DIESEL emblem"></div>
       <div class="id-block">
         <div class="name-row">
           <span class="name">AL-MORADI EL-DIESEL</span>
@@ -130,9 +132,10 @@
     </div>
 
     <div class="bio">
-      This node answers to one name. Every operative on the board reports here, every mission
-      gets signed off here. <b>I don't follow the network — I run it.</b> Twelve units, zero leaks,
-      one command chain, and a following that keeps growing every time this node goes live.
+      Command here was never built on noise. Every operative on this board answers to one desk, and no mission
+      closes without this node's word on it. <b>What holds a network together isn't volume — it's discipline.</b>
+      Fifteen units, zero leaks, one chain of command that has never once needed to raise its voice to be heard.
+      The work speaks. The rest is just detail.
     </div>
 
     <div class="tags">
