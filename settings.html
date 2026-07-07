@@ -63,6 +63,7 @@
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/settings</div>
     <div class="sys-tag">CONFIG</div>
   </div>
+  <div class="session-strip" id="sessionStrip"></div>
 
   <div class="page">
     <nav class="navbar">
@@ -100,6 +101,11 @@
         <div class="accent-card" data-accent="crimson" onclick="setAccent('crimson')">
           <div class="swatch-row"><span class="sw" style="background:#ff3b57"></span><span class="sw" style="background:#4d0f18"></span></div>
           <div class="lbl">CRIMSON OPS</div>
+          <div class="check">&#10003; ACTIVE</div>
+        </div>
+        <div class="accent-card" data-accent="amber" onclick="setAccent('amber')">
+          <div class="swatch-row"><span class="sw" style="background:#ffb238"></span><span class="sw" style="background:#4d3410"></span></div>
+          <div class="lbl">AMBER ALERT</div>
           <div class="check">&#10003; ACTIVE</div>
         </div>
       </div>
@@ -178,6 +184,8 @@
 </div>
 
 <script src="js/matrix.js"></script>
+<script src="js/session.js"></script>
+<script>DieselSession.mount('sessionStrip');</script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>

@@ -57,6 +57,7 @@
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/crew</div>
     <div class="sys-tag">12 UNITS</div>
   </div>
+  <div class="session-strip" id="sessionStrip"></div>
 
   <div class="page">
     <nav class="navbar">
@@ -84,6 +85,8 @@
 </div>
 
 <script src="js/matrix.js"></script>
+<script src="js/session.js"></script>
+<script>DieselSession.mount('sessionStrip');</script>
 <script>
 const CREW = [
   { id:"ghost", icon:"&#128123;", nm:"GHOST", rl:"INFILTRATION", lvl:9, status:"on",

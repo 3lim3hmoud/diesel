@@ -5,7 +5,8 @@ const DieselTheme = {
   ACCENTS: {
     green:   { c: '#39ff6a', dim: '#0f4d24', glow: 'rgba(57,255,106,' },
     cyan:    { c: '#39d6ff', dim: '#0f3d4d', glow: 'rgba(57,214,255,' },
-    crimson: { c: '#ff3b57', dim: '#4d0f18', glow: 'rgba(255,59,87,' }
+    crimson: { c: '#ff3b57', dim: '#4d0f18', glow: 'rgba(255,59,87,' },
+    amber:   { c: '#ffb238', dim: '#4d3410', glow: 'rgba(255,178,56,' }
   },
 
   current(){
