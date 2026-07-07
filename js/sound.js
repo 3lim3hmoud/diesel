@@ -38,6 +38,8 @@ const DieselSound = {
   send(){ this.tone(900, 0.09, 'triangle', 0.05); },
   receive(){ this.tone(650, 0.12, 'sine', 0.045); },
   success(){ this.tone(660, 0.09, 'triangle', 0.05); setTimeout(() => this.tone(990, 0.12, 'triangle', 0.05), 90); },
+  cashIn(){ this.tone(784, 0.07, 'triangle', 0.05); setTimeout(() => this.tone(1046, 0.14, 'triangle', 0.05), 70); },
+  cashOut(){ this.tone(440, 0.08, 'sawtooth', 0.035); setTimeout(() => this.tone(330, 0.14, 'sawtooth', 0.03), 80); },
   alert(){ this.tone(1200, 0.06, 'square', 0.04); },
   levelUp(){ this.tone(523,0.1,'triangle',0.05); setTimeout(()=>this.tone(659,0.1,'triangle',0.05),100); setTimeout(()=>this.tone(784,0.16,'triangle',0.05),200); }
 };

@@ -12,7 +12,9 @@
 <script src="js/theme.js"></script>
 <style>
   .balance-panel{ padding:26px 28px 10px; display:flex; align-items:flex-end; gap:28px; flex-wrap:wrap; border-bottom:1px solid var(--line); }
-  .balance-main .lbl{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--muted); }
+  .balance-main .lbl{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .balance-main .sync-tag{ color:var(--green); font-size:9.5px; letter-spacing:1px; border:1px solid var(--green-dim); padding:2px 6px; border-radius:10px; background:rgba(57,255,106,0.05); }
+  .balance-main .sync-time{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:4px; }
   .balance-main .amt{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:42px; color:#f2f3f5; text-shadow:0 0 20px rgba(57,255,106,0.3); }
   .balance-main .amt span{ color:var(--green); }
   .balance-sub{ display:flex; gap:24px; flex-wrap:wrap; padding-bottom:6px; }
@@ -48,6 +50,12 @@
   .fight .desc{ font-size:13.5px; color:#a9afb6; line-height:1.6; max-width:640px; }
   .fight .meta{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:8px; }
   .fight .badge.injury{ border-color:#5a1a1a; background:rgba(255,59,59,0.08); color:var(--warn); }
+
+  .fight-record{ margin:0 28px 14px; display:flex; gap:22px; flex-wrap:wrap; align-items:center; }
+  .fight-record .stat{ font-family:'Share Tech Mono', monospace; }
+  .fight-record .stat .n{ font-size:20px; font-weight:700; color:var(--acid); }
+  .fight-record .stat .l{ font-size:9.5px; color:var(--muted); letter-spacing:1px; }
+  .fight-record .rec-badge{ font-size:11px; letter-spacing:1px; color:var(--green); border:1px solid var(--green-dim); padding:4px 10px; border-radius:20px; background:rgba(57,255,106,0.05); }
 </style>
 </head>
 <body>
@@ -61,6 +69,7 @@
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/wallet</div>
     <div class="sys-tag">SECURE VAULT</div>
   </div>
+  <div class="session-strip" id="sessionStrip"></div>
 
   <div class="page">
     <nav class="navbar">
@@ -83,8 +92,9 @@
 
     <div class="balance-panel">
       <div class="balance-main">
-        <div class="lbl">TOTAL BALANCE</div>
+        <div class="lbl">TOTAL BALANCE <span class="sync-tag" id="syncTag">&#10003; SYNCED</span></div>
         <div class="amt" id="balanceAmt"><span>$</span>70,000</div>
+        <div class="sync-time" id="syncTime"></div>
       </div>
       <div class="balance-sub">
         <div class="item"><div class="n" id="totalIn">+$11,700</div><div class="l">TOTAL IN</div></div>
@@ -96,8 +106,8 @@
     <div class="tx-tools">
       <div class="filters">
         <button class="filter-btn active" data-f="all" onclick="filterTx('all', this)">ALL</button>
-        <button class="filter-btn" data-f="in" onclick="filterTx('in', this)">DEPOSITS</button>
-        <button class="filter-btn" data-f="out" onclick="filterTx('out', this)">WITHDRAWALS</button>
+        <button class="filter-btn" data-f="in" onclick="DieselSound.cashIn(); filterTx('in', this)">DEPOSITS</button>
+        <button class="filter-btn" data-f="out" onclick="DieselSound.cashOut(); filterTx('out', this)">WITHDRAWALS</button>
         <button class="filter-btn" data-f="risk" onclick="filterTx('risk', this)">HIGH RISK</button>
       </div>
       <span class="badge muted" id="txCount">0 RECORDS</span>
@@ -107,6 +117,7 @@
 
     <div class="section-title">FIGHT LOG</div>
     <div class="section-hint">OFF-BOOK MATCHES &middot; NO SANCTIONING BODY &middot; PURSE SETTLED IN CASH, NO QUESTIONS ASKED</div>
+    <div class="fight-record" id="fightRecord"></div>
     <div class="fight-list" id="fightList"></div>
 
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
@@ -114,6 +125,8 @@
 </div>
 
 <script src="js/matrix.js"></script>
+<script src="js/session.js"></script>
+<script>DieselSession.mount('sessionStrip');</script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
@@ -188,6 +201,15 @@ function renderBalance(){
   document.getElementById('largestPayout').textContent = '$' + totals.largest.toLocaleString();
 }
 
+function tickSyncTime(){
+  const el = document.getElementById('syncTime');
+  if(!el) return;
+  const secs = 4 + Math.floor(Math.random() * 9);
+  el.textContent = 'LAST RECONCILED ' + secs + 's AGO \u00b7 LEDGER MATCHES NODE RECORD';
+}
+tickSyncTime();
+setInterval(tickSyncTime, 6000);
+
 function renderTx(){
   const list = document.getElementById('txList');
   list.innerHTML = '';
@@ -210,6 +232,22 @@ function renderTx(){
     list.appendChild(div);
   });
   document.getElementById('txCount').textContent = shown + ' RECORDS';
+}
+
+function renderFightRecord(){
+  const el = document.getElementById('fightRecord');
+  if(!el) return;
+  const wins = FIGHTS.filter(f => f.result === 'WIN').length;
+  const losses = FIGHTS.filter(f => f.result === 'LOSS').length;
+  const totalPurse = FIGHTS.reduce((sum, f) => sum + DieselState.parseCurrency(f.purse), 0);
+  let streak = 0;
+  for(const f of FIGHTS){ if(f.result === 'WIN') streak++; else break; }
+  el.innerHTML = `
+    <span class="rec-badge">${wins}-${losses} RECORD</span>
+    <div class="stat"><div class="n">${FIGHTS.length}</div><div class="l">MATCHES</div></div>
+    <div class="stat"><div class="n">$${totalPurse.toLocaleString()}</div><div class="l">TOTAL PURSE</div></div>
+    <div class="stat"><div class="n">${streak}</div><div class="l">WIN STREAK</div></div>
+  `;
 }
 
 function renderFights(){
@@ -242,6 +280,7 @@ function filterTx(f, btn){
 
 renderBalance();
 renderTx();
+renderFightRecord();
 renderFights();
 
 if ('serviceWorker' in navigator) {

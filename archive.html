@@ -44,6 +44,7 @@
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/archive</div>
     <div class="sys-tag">AES-∞</div>
   </div>
+  <div class="session-strip" id="sessionStrip"></div>
 
   <div class="page">
     <nav class="navbar">
@@ -96,6 +97,8 @@
 </div>
 
 <script src="js/matrix.js"></script>
+<script src="js/session.js"></script>
+<script>DieselSession.mount('sessionStrip');</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
