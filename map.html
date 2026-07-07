@@ -11,38 +11,102 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="js/theme.js"></script>
 <style>
+  /* this page runs wider than the rest of the app — it's the global op-center, it should feel big */
+  .wrap{ max-width:1360px; }
+
   .map-wrap{ padding:10px 28px 8px; }
   .map-frame{
-    background:radial-gradient(ellipse at 50% 45%, rgba(15,77,36,0.18), rgba(6,10,7,0.75) 70%);
-    border:1px solid var(--line); border-radius:8px; padding:10px; overflow:hidden; position:relative;
+    background:
+      linear-gradient(180deg, rgba(2,4,3,0.55), rgba(2,4,3,0.72) 60%, rgba(2,4,3,0.88)),
+      radial-gradient(ellipse at 50% 40%, rgba(15,77,36,0.22), rgba(6,10,7,0.2) 65%),
+      url('images/world-network-bg.jpg');
+    background-size:cover; background-position:center 42%;
+    border:1px solid var(--line); border-radius:10px; padding:14px 14px 6px; overflow:hidden; position:relative;
+    box-shadow:0 0 0 1px rgba(57,255,106,0.05), 0 30px 70px -30px rgba(0,0,0,0.7);
   }
-  svg{ width:100%; height:auto; display:block; }
-  .globe-outline{ fill:none; stroke:var(--green-dim); stroke-width:1; }
-  .globe-grid{ fill:none; stroke:var(--green-dim); stroke-width:0.6; opacity:0.55; }
-  .continent{ fill:#0f4d24; opacity:0.28; stroke:var(--green-dim); stroke-width:0.8; }
-  .globe-scan{ fill:none; stroke:var(--green); stroke-width:1; opacity:0.5; transform-origin:450px 220px; animation:spin 14s linear infinite; }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-  .node-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#dfe2e6; }
-  .node-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#5a6459; }
-  .link-line{ stroke:#0f4d24; stroke-width:1.2; fill:none; opacity:0.7; }
-  .link-line.hot{ stroke:#39ff6a; stroke-dasharray:4 3; animation:dash 2.5s linear infinite; }
+  .map-frame-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .map-owner-tag{
+    font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:2px; color:var(--acid);
+    border:1px solid #4d5a1a; background:rgba(212,255,61,0.08); padding:4px 10px; border-radius:4px;
+  }
+  .map-owner-tag b{ color:#f2f3f5; }
+  svg{ width:100%; height:auto; display:block; position:relative; z-index:2; }
+  .map-frame svg{ aspect-ratio:900/430; }
+
+  /* the real photo already reads as a globe — keep only the functional overlay drawing on top */
+  .globe-outline, .globe-grid, .continent, .globe-scan{ display:none; }
+
+  .node-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#eef1f5; paint-order:stroke; stroke:#020403; stroke-width:3px; }
+  .node-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#b7bdb2; paint-order:stroke; stroke:#020403; stroke-width:2.5px; }
+  .link-line{ stroke:#39ff6a; stroke-width:1; fill:none; opacity:0.35; }
+  .link-line.hot{ stroke:#39ff6a; stroke-width:1.3; stroke-dasharray:4 3; opacity:0.85; animation:dash 2.5s linear infinite; }
   @keyframes dash{ to{ stroke-dashoffset:-20; } }
   .node-dot{ stroke:#020403; stroke-width:2; cursor:pointer; transition:r .15s ease, filter .15s ease; }
   .node-dot.command{ fill:#d4ff3d; }
   .node-dot.active{ fill:#39ff6a; }
   .node-dot.watch{ fill:#ff3b3b; }
-  .node-dot.dim{ fill:#4d564f; }
+  .node-dot.dim{ fill:#8a958c; }
   .node-dot.expanding{ fill:#3dd4ff; }
   .node-dot.expanding-ring{ fill:none; stroke:#3dd4ff; stroke-width:1.5; opacity:0.7; animation:ping 2s ease-out infinite; }
   .rival-mark{ fill:#ff3b3b; stroke:#020403; stroke-width:2; cursor:pointer; transition:filter .15s ease; }
   .rival-mark:hover{ filter:drop-shadow(0 0 6px #ff3b3b); }
-  .rival-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#ff8080; letter-spacing:1px; }
-  .rival-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#8a4a4a; }
+  .rival-label{ font-family:'Share Tech Mono', monospace; font-size:11px; fill:#ff9d9d; letter-spacing:1px; paint-order:stroke; stroke:#020403; stroke-width:3px; }
+  .rival-sub{ font-family:'Share Tech Mono', monospace; font-size:8.5px; fill:#d99; paint-order:stroke; stroke:#020403; stroke-width:2.5px; }
   .rival-pulse{ fill:none; stroke:#ff3b3b; stroke-width:1; opacity:0.6; animation:ping 2.4s ease-out infinite; }
   @keyframes ping{ 0%{ r:8; opacity:0.7; } 100%{ r:20; opacity:0; } }
   .node-dot:hover{ filter:drop-shadow(0 0 6px currentColor); }
   .node-card{ transition:background .2s ease, border-color .2s ease; scroll-margin-top:20px; cursor:pointer; }
   .node-card.highlight{ background:rgba(57,255,106,0.1) !important; border-color:var(--green-dim); }
+
+  /* ---- world stats ribbon ---- */
+  .world-stats{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:14px 28px 0;
+  }
+  .world-stats .cell{ background:rgba(6,10,7,0.85); padding:12px 14px; }
+  .world-stats .cell .lbl{ font-family:'Share Tech Mono', monospace; font-size:9.5px; letter-spacing:1.5px; color:var(--muted); }
+  .world-stats .cell .val{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:19px; color:var(--green); margin-top:2px; }
+  .world-stats .cell .val.acid{ color:var(--acid); }
+  .world-stats .cell .val.warn{ color:var(--warn); }
+
+  /* ---- firewall button + sweep overlay ---- */
+  .firewall-btn{
+    display:flex; align-items:center; gap:8px; font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:1.5px;
+    padding:8px 14px; border-radius:6px; border:1px solid #3dd4ff44; background:rgba(61,212,255,0.08); color:#7fe6ff;
+    cursor:pointer; transition:background .15s ease;
+  }
+  .firewall-btn:hover{ background:rgba(61,212,255,0.16); }
+  .firewall-btn:disabled{ opacity:0.5; cursor:default; }
+  .firewall-btn .ic{ font-size:13px; }
+
+  .firewall-overlay{
+    position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; flex-direction:column;
+    background:radial-gradient(ellipse at 50% 50%, rgba(6,20,26,0.55), rgba(2,4,3,0.9));
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .firewall-overlay.on{ opacity:1; pointer-events:all; }
+  .firewall-overlay .ring{
+    width:120px; height:120px; border-radius:50%; border:2px solid #3dd4ff; position:relative; margin-bottom:14px;
+    box-shadow:0 0 24px rgba(61,212,255,0.5) inset, 0 0 24px rgba(61,212,255,0.3);
+  }
+  .firewall-overlay .ring::before, .firewall-overlay .ring::after{
+    content:''; position:absolute; inset:-2px; border-radius:50%; border:2px solid #3dd4ff88;
+    animation:fwping 1.6s ease-out infinite;
+  }
+  .firewall-overlay .ring::after{ animation-delay:.8s; }
+  @keyframes fwping{ 0%{ transform:scale(1); opacity:0.9; } 100%{ transform:scale(1.9); opacity:0; } }
+  .firewall-overlay .sweep{ position:absolute; inset:6px; border-radius:50%; overflow:hidden; }
+  .firewall-overlay .sweep::before{
+    content:''; position:absolute; inset:0; background:conic-gradient(from 0deg, transparent 0deg, #3dd4ff99 40deg, transparent 90deg);
+    animation:fwspin 1.1s linear infinite;
+  }
+  @keyframes fwspin{ to{ transform:rotate(360deg); } }
+  .firewall-overlay .shield{ font-size:34px; position:relative; z-index:2; }
+  .firewall-overlay .txt{ font-family:'Share Tech Mono', monospace; font-size:12px; letter-spacing:2px; color:#bdf3ff; text-align:center; }
+  .firewall-overlay .txt .count{ color:#3dd4ff; font-weight:700; }
+  .firewall-overlay .bar{ width:220px; height:4px; background:#0a1a1e; border-radius:2px; overflow:hidden; margin-top:10px; }
+  .firewall-overlay .bar i{ display:block; height:100%; width:0%; background:#3dd4ff; animation:fwbar 2.4s ease forwards; }
+  @keyframes fwbar{ to{ width:100%; } }
 
   .legend{ display:flex; gap:18px; padding:14px 28px 22px; flex-wrap:wrap; }
   .legend .item{ display:flex; align-items:center; gap:7px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
@@ -50,7 +114,7 @@
   .legend .sw.command{ background:#d4ff3d; }
   .legend .sw.active{ background:#39ff6a; }
   .legend .sw.watch{ background:#ff3b3b; }
-  .legend .sw.dim{ background:#4d564f; }
+  .legend .sw.dim{ background:#8a958c; }
   .legend .sw.expanding{ background:#3dd4ff; }
 
   .node-panel{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
@@ -58,13 +122,44 @@
   .node-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:14.5px; color:#f2f3f5; }
   .node-card .st{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-top:3px; }
 
-  .chatter-panel{ margin:0 4px 4px; padding:14px 16px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
+  .chatter-panel{ margin:0 28px 20px; padding:14px 16px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
   .chatter-head{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--green); margin-bottom:10px; display:flex; justify-content:space-between; }
   .chatter-line{ font-family:'Share Tech Mono', monospace; font-size:12px; color:#c3c8cd; line-height:1.9; opacity:0; animation:fadein .4s ease forwards; }
   @keyframes fadein{ to{ opacity:1; } }
   .chatter-line .tag{ color:var(--acid); margin-right:6px; }
   .chatter-cursor{ display:inline-block; width:7px; height:12px; background:var(--green); animation:blink 1s step-start infinite; vertical-align:-1px; }
   @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---- dispatch console: send a message/command to any node on the map ---- */
+  .dispatch-panel{ margin:0 28px 30px; padding:16px 16px 18px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
+  .dispatch-head{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--green); margin-bottom:4px; }
+  .dispatch-sub{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-bottom:12px; }
+  .dispatch-form{ display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; }
+  .dispatch-form select, .dispatch-form textarea{
+    font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--text);
+    background:#050506; border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+  }
+  .dispatch-form select{ flex:0 0 190px; }
+  .dispatch-form textarea{ flex:1 1 220px; min-width:180px; resize:vertical; min-height:38px; }
+  .dispatch-form button{
+    font-family:'Share Tech Mono', monospace; font-size:11.5px; letter-spacing:1.5px;
+    padding:9px 18px; border-radius:6px; border:1px solid var(--green-dim);
+    background:rgba(57,255,106,0.1); color:var(--green); cursor:pointer;
+  }
+  .dispatch-form button:hover{ background:rgba(57,255,106,0.18); }
+  .dispatch-form button:disabled{ opacity:0.45; cursor:default; }
+
+  .dispatch-log{ margin-top:14px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
+  .dispatch-entry{ border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:rgba(10,18,12,0.55); }
+  .dispatch-entry .row1{ display:flex; justify-content:space-between; gap:10px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+  .dispatch-entry .row1 .target{ color:#f2f3f5; font-weight:700; }
+  .dispatch-entry .txt{ font-family:'Share Tech Mono', monospace; font-size:12px; color:#c3c8cd; margin-top:6px; }
+  .dispatch-entry .status{ font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:1px; margin-top:8px; display:flex; align-items:center; gap:6px; }
+  .dispatch-entry .status.pending{ color:var(--acid); }
+  .dispatch-entry .status.done{ color:var(--green); }
+  .dispatch-entry .reply{ margin-top:6px; padding-top:6px; border-top:1px dashed var(--line); font-family:'Share Tech Mono', monospace; font-size:11.5px; color:#9fe6b0; }
+  .dispatch-entry .code{ color:var(--acid); }
+  .dispatch-empty{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--muted); padding:6px 2px; }
 </style>
 </head>
 <body>
@@ -98,8 +193,22 @@
       <p>NINE NODES ACROSS SIX CONTINENTS &middot; 3 RIVAL ORGS TRACKED &middot; LIVE INTERCEPT FEED ON SELECT</p>
     </div>
 
+    <div class="world-stats">
+      <div class="cell"><div class="lbl">COVERAGE</div><div class="val">6 CONTINENTS</div></div>
+      <div class="cell"><div class="lbl">REGIONS MAPPED</div><div class="val acid">190+</div></div>
+      <div class="cell"><div class="lbl">MESH UPTIME</div><div class="val">99.98%</div></div>
+      <div class="cell"><div class="lbl">RIVAL ORGS TRACKED</div><div class="val warn">3</div></div>
+      <div class="cell"><div class="lbl">FIREWALL BLOCKS</div><div class="val" id="statFirewall">0</div></div>
+      <div class="cell"><div class="lbl">CHAIN OF COMMAND</div><div class="val acid">DIESEL</div></div>
+    </div>
+
     <div class="map-wrap">
-      <div class="map-frame">
+      <div class="map-frame" id="mapFrame">
+        <div class="map-frame-top">
+          <span class="map-owner-tag">GLOBAL MESH &middot; OPERATED BY <b>DIESEL</b></span>
+          <button class="firewall-btn" id="firewallBtn" onclick="runFirewall()"><span class="ic">&#128737;</span> RUN FIREWALL SWEEP</button>
+        </div>
+
         <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
           <ellipse class="globe-outline" cx="450" cy="200" rx="330" ry="185"></ellipse>
           <ellipse class="globe-grid" cx="450" cy="200" rx="330" ry="60"></ellipse>
@@ -176,6 +285,15 @@
           <text class="rival-label" x="512" y="352" text-anchor="middle">OBSIDIAN CIRCLE</text>
           <text class="rival-sub" x="512" y="367" text-anchor="middle">rival &middot; southern outpost</text>
         </svg>
+
+        <div class="firewall-overlay" id="firewallOverlay">
+          <div class="ring">
+            <div class="sweep"></div>
+            <div class="shield" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">&#128737;</div>
+          </div>
+          <div class="txt">SCANNING PERIMETER TRAFFIC...<br>THREATS BLOCKED: <span class="count" id="fwCount">0</span></div>
+          <div class="bar"><i></i></div>
+        </div>
       </div>
       <div class="chatter-panel" id="chatterPanel">
         <div class="chatter-head"><span id="chatterTitle">// SELECT A NODE ABOVE</span><span id="chatterStatus"></span></div>
@@ -207,6 +325,17 @@
       <div class="node-card" id="card-THE-SYNDICATE" onclick="selectNode(null,'THE-SYNDICATE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">THE SYNDICATE</div><div class="st">Hong Kong sector &middot; rival &middot; encrypted, unclaimed</div></div>
       <div class="node-card" id="card-NULL-COLLECTIVE" onclick="selectNode(null,'NULL-COLLECTIVE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">NULL COLLECTIVE</div><div class="st">Unclaimed north &middot; rival &middot; identity unconfirmed</div></div>
       <div class="node-card" id="card-OBSIDIAN-CIRCLE" onclick="selectNode(null,'OBSIDIAN-CIRCLE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">OBSIDIAN CIRCLE</div><div class="st">Southern outpost &middot; rival &middot; watching COMMAND-01</div></div>
+    </div>
+
+    <div class="dispatch-panel">
+      <div class="dispatch-head">// DISPATCH CONSOLE</div>
+      <div class="dispatch-sub">Send any directive to any point on the mesh. Queued instantly with a tracking code &middot; field confirms execution in ~3 minutes.</div>
+      <div class="dispatch-form">
+        <select id="dispatchTarget"></select>
+        <textarea id="dispatchText" placeholder="Type your order or message to the node..." rows="1"></textarea>
+        <button id="dispatchBtn" onclick="sendDispatch()">TRANSMIT</button>
+      </div>
+      <div class="dispatch-log" id="dispatchLog"></div>
     </div>
 
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
@@ -281,6 +410,29 @@ const NODE_DATA = {
   ]}
 };
 
+// flavor replies used once a dispatch's 3-minute window resolves
+const REPLY_BANK = {
+  "COMMAND-01": ["Directive logged and actioned at the source. Board updated.", "Confirmed. All fifteen units notified of the new order."],
+  "GRID-77": ["GHOST: order received and carried out. Node stayed quiet the whole time.", "Done. No trace left behind, as always."],
+  "RELAY-9": ["ECHO: routed and executed clean across all three hops.", "Order carried out. Line integrity unaffected."],
+  "SAFEHOUSE-4": ["RELAY: directive received, executed from standby without waking the node.", "Handled quietly. House stayed dark throughout."],
+  "BLACKVAULT-13": ["FROST: order acknowledged. Kept it subtle given the rival chatter nearby.", "Done, carefully. Didn't want to spook whoever's watching."],
+  "VAULT-13": ["CIPHER: executed and re-sealed. Archive integrity unaffected.", "Order carried out under full encryption. No anomalies."],
+  "CAIRO-OUTPOST": ["SABLE: directive complete. Ground's still clean.", "Done. Fourth node timeline unaffected."],
+  "SYDNEY-WATCH": ["VORTEX: order carried out from the satellite link. All quiet.", "Handled. Southern approach still calm."],
+  "LAGOS-LINE": ["ANCHOR: brought the relay hot just long enough to execute, then dark again.", "Order carried out. Back to dormant now."],
+  "THE-SYNDICATE": ["UNVERIFIED SOURCE: '...message received. We'll consider it...'", "No formal confirmation — signal just went quiet after delivery."],
+  "NULL-COLLECTIVE": ["SIGNAL GHOSTED: delivery confirmed by a single ping, then silence.", "No reply text — just an acknowledgment tone and nothing else."],
+  "OBSIDIAN-CIRCLE": ["FROST: they received it. No telling what they'll do with it.", "Delivery confirmed. Recommend watching this one closely now."]
+};
+
+const NODE_LABELS = {
+  "COMMAND-01":"COMMAND-01 · Berlin", "GRID-77":"GRID-77 · Tokyo", "RELAY-9":"RELAY-9 · New York",
+  "SAFEHOUSE-4":"SAFEHOUSE-4 · Rio", "BLACKVAULT-13":"BLACKVAULT-13 · Moscow", "VAULT-13":"VAULT-13 · Singapore",
+  "CAIRO-OUTPOST":"CAIRO OUTPOST · Cairo", "SYDNEY-WATCH":"SYDNEY WATCH · Sydney", "LAGOS-LINE":"LAGOS LINE · Lagos",
+  "THE-SYNDICATE":"⚠ THE SYNDICATE · rival", "NULL-COLLECTIVE":"⚠ NULL COLLECTIVE · rival", "OBSIDIAN-CIRCLE":"⚠ OBSIDIAN CIRCLE · rival"
+};
+
 function selectNode(circle, name){
   DieselSound.type();
   document.querySelectorAll('.node-card').forEach(c => c.classList.remove('highlight'));
@@ -312,7 +464,127 @@ function selectNode(circle, name){
       }
     }, 250 + i * 550);
   });
+
+  // pre-select this node as the dispatch target too, for a fast follow-up order
+  const sel = document.getElementById('dispatchTarget');
+  if(sel) sel.value = name;
 }
+
+// ---------- firewall sweep ----------
+let fwRunning = false;
+function runFirewall(){
+  if(fwRunning) return;
+  fwRunning = true;
+  const btn = document.getElementById('firewallBtn');
+  const overlay = document.getElementById('firewallOverlay');
+  btn.disabled = true;
+  overlay.classList.add('on');
+  DieselSound.alert();
+
+  const countEl = document.getElementById('fwCount');
+  const result = DieselState.triggerFirewall();
+  let shown = 0;
+  const step = setInterval(() => {
+    shown += Math.ceil(result.blocked / 8) || 1;
+    if(shown >= result.blocked){ shown = result.blocked; clearInterval(step); }
+    countEl.textContent = shown;
+  }, 220);
+
+  setTimeout(() => {
+    overlay.classList.remove('on');
+    btn.disabled = false;
+    fwRunning = false;
+    DieselSound.success();
+    document.getElementById('statFirewall').textContent = DieselState.get().firewallBlocks;
+  }, 2500);
+}
+
+// ---------- dispatch console ----------
+function buildTargetOptions(){
+  const sel = document.getElementById('dispatchTarget');
+  sel.innerHTML = '';
+  Object.keys(NODE_LABELS).forEach(id => {
+    const opt = document.createElement('option');
+    opt.value = id; opt.textContent = NODE_LABELS[id];
+    sel.appendChild(opt);
+  });
+}
+
+function timeLeftLabel(ts){
+  const remain = DieselState.DISPATCH_DELAY_MS - (Date.now() - ts);
+  if(remain <= 0) return '00:00';
+  const s = Math.ceil(remain / 1000);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function renderDispatchLog(){
+  const log = document.getElementById('dispatchLog');
+  const items = DieselState.getDispatches();
+  if(!items.length){
+    log.innerHTML = '<div class="dispatch-empty">No transmissions yet — send your first order to any node above.</div>';
+    return;
+  }
+  log.innerHTML = items.map(d => {
+    const label = NODE_LABELS[d.target] || d.target;
+    if(d.status === 'pending'){
+      return `<div class="dispatch-entry" data-id="${d.id}">
+        <div class="row1"><span class="target">→ ${label}</span><span>TRACKING <span class="code">${d.code}</span></span></div>
+        <div class="txt">${escapeHtml(d.text)}</div>
+        <div class="status pending"><span class="chatter-cursor" style="width:6px;height:10px;"></span> AWAITING CONFIRMATION — ETA <span class="eta">${timeLeftLabel(d.ts)}</span></div>
+      </div>`;
+    }
+    return `<div class="dispatch-entry" data-id="${d.id}">
+      <div class="row1"><span class="target">→ ${label}</span><span>TRACKING <span class="code">${d.code}</span></span></div>
+      <div class="txt">${escapeHtml(d.text)}</div>
+      <div class="status done">&#9989; EXECUTED — CONFIRMATION <span class="code">${d.doneCode}</span></div>
+      <div class="reply">${escapeHtml(d.reply)}</div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function sendDispatch(){
+  const target = document.getElementById('dispatchTarget').value;
+  const textEl = document.getElementById('dispatchText');
+  const text = textEl.value.trim();
+  if(!text) { textEl.focus(); return; }
+
+  const entry = DieselState.addDispatch(target, text);
+  DieselSound.send();
+  textEl.value = '';
+  renderDispatchLog();
+
+  // small immediate bot ack in the chatter panel so it feels alive right away
+  document.getElementById('chatterTitle').textContent = '// TRANSMISSION SENT';
+  document.getElementById('chatterStatus').textContent = 'QUEUED';
+  document.getElementById('chatterBody').innerHTML =
+    `<div class="chatter-line" style="opacity:1;"><span class="tag">&gt;</span>BOT: transmission to ${NODE_LABELS[target]} queued — tracking code <b style="color:var(--acid)">${entry.code}</b>. Expect field confirmation shortly.</div>`;
+}
+
+function tickDispatches(){
+  const resolved = DieselState.resolveDueDispatches(REPLY_BANK);
+  if(resolved.length){
+    DieselSound.receive();
+    setTimeout(() => DieselSound.success(), 150);
+  }
+  renderDispatchLog();
+}
+
+buildTargetOptions();
+renderDispatchLog();
+setInterval(tickDispatches, 1000);
+document.getElementById('statFirewall').textContent = DieselState.get().firewallBlocks;
+
+document.getElementById('dispatchText').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendDispatch(); }
+});
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
