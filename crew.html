@@ -55,7 +55,7 @@
   <div class="browser-chrome">
     <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/crew</div>
-    <div class="sys-tag">12 UNITS</div>
+    <div class="sys-tag">15 UNITS</div>
   </div>
 
   <div class="page">
@@ -74,7 +74,7 @@
 
     <div class="subhead">
       <h1>// CREW ROSTER</h1>
-      <p>12 OPERATIVES &middot; ALL REPORTING TO COMMAND-01</p>
+      <p>15 OPERATIVES &middot; ALL REPORTING TO COMMAND-01</p>
     </div>
 
     <div class="crew-grid" id="crewGrid"></div>
@@ -133,7 +133,19 @@ const CREW = [
   { id:"pulse", icon:"&#9889;", nm:"PULSE", rl:"RAPID RESPONSE", lvl:6, status:"on",
     desc:"First one on comms the second something on the board goes wrong.",
     successRate:89, log:[{t:"SIGNAL BREAK",r:"SUCCESS"},{t:"BLACKOUT",r:"SUCCESS"},{t:"GHOST WRITER",r:"SUCCESS"}],
-    relationship:"DIESEL's first call in any emergency. Never once been unreachable." }
+    relationship:"DIESEL's first call in any emergency. Never once been unreachable." },
+  { id:"vortex", icon:"&#127786;&#65039;", nm:"VORTEX", rl:"MARKET STRATEGY", lvl:8, status:"on",
+    desc:"Reads the market three moves ahead of everyone else on the board.",
+    successRate:93, log:[{t:"SILENT AUCTION",r:"SUCCESS"},{t:"DARK HARVEST",r:"SUCCESS"},{t:"LONG CON",r:"SUCCESS"}],
+    relationship:"Built the deal that doubled the crew's holdings — DIESEL still calls it the turning point." },
+  { id:"sable", icon:"&#128007;", nm:"SABLE", rl:"EXPANSION OPS", lvl:7, status:"mission",
+    desc:"Scouts new territory before the crew ever sets foot in it.",
+    successRate:87, log:[{t:"NIGHT MARKET",r:"SUCCESS"},{t:"RECRUIT",r:"SUCCESS"},{t:"OPEN DOOR",r:"SUCCESS"}],
+    relationship:"Opened three new command nodes this year alone, all still standing." },
+  { id:"anchor", icon:"&#9875;&#65039;", nm:"ANCHOR", rl:"OPERATIONS", lvl:8, status:"on",
+    desc:"Keeps every moving piece on schedule so nothing slips through the cracks.",
+    successRate:95, log:[{t:"IRON VAULT",r:"SUCCESS"},{t:"SAFE HOUSE",r:"SUCCESS"},{t:"DEAD DROP",r:"SUCCESS"}],
+    relationship:"Runs the day-to-day so DIESEL only has to sign off on the big calls." }
 ];
 
 const STATUS_LABEL = { on:"online", mission:"on mission", off:"offline" };

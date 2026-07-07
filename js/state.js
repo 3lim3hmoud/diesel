@@ -3,7 +3,8 @@ const RANKS = [
   { min: 150,  tier: 'III',   label: 'COMMANDER' },
   { min: 500,  tier: 'II',    label: 'SENIOR COMMANDER' },
   { min: 1100, tier: 'I',     label: 'ELITE COMMANDER' },
-  { min: 2000, tier: 'PRIME', label: 'COMMANDER PRIME' }
+  { min: 2000, tier: 'PRIME', label: 'COMMANDER PRIME' },
+  { min: 3500, tier: 'APEX',  label: 'COMMANDER APEX' }
 ];
 
 const XP_TABLE = { LOW: 40, MED: 70, HIGH: 110, EXTREME: 180, '???': 250 };
@@ -68,7 +69,7 @@ const DieselState = {
     const s = this.load();
     s.broadcastCount++;
     this.save(s);
-    this.addAlert('growth', '&#128227;', `Broadcast #${s.broadcastCount} reached all 12 units with zero drop-off`);
+    this.addAlert('growth', '&#128227;', `Broadcast #${s.broadcastCount} reached all 15 units with zero drop-off`);
     const newAchievements = this.checkAchievements();
     return { count: s.broadcastCount, newAchievements };
   },

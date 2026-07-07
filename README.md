@@ -1,11 +1,11 @@
 # DIESEL // COMMAND SYSTEM (PWA)
 
-سيستيم كامل بشخصية "قائد" (Commander) — فيه لوحة تحكم، طاقم (Crew)، لوحة مهام (Missions) تقدر تتفاعل معاها فعليًا، وأرشيف. شغال كـ PWA وجاهز يترفع على GitHub Pages.
+سيستيم كامل بشخصية "قائد" (Commander) — فيه لوحة تحكم، طاقم (Crew) من 15 وحدة، لوحة مهام (Missions) تقدر تتفاعل معاها فعليًا، وأرشيف. شغال كـ PWA وجاهز يترفع على GitHub Pages.
 
 ## الصفحات
 - `index.html` — الدخول: boot sequence + خلفية حروف نازلة (matrix rain) + ترحيب "WELCOME, DIESEL".
 - `command.html` — مركز القيادة: بروفايلك، إحصائيات، وأزرار تحكم حقيقية (SYSTEM LOCKDOWN toggle، BROADCAST) بتتخزن فعليًا في المتصفح.
-- `crew.html` — طاقمك (7 شخصيات بأدوار مختلفة).
+- `crew.html` — طاقمك (15 شخصية بأدوار مختلفة).
 - `missions.html` — لوحة مهام تقدر فعلاً تعمل CLAIM للمهمة وبعدين MARK COMPLETE، وفيها فلاتر (ACTIVE / CLAIMED / COMPLETED / LOCKED).
 - `archive.html` — اللوج الكامل + خزنة الملفات.
 
@@ -24,7 +24,7 @@
 6. افتحه من الموبايل وهتلاقي خيار "إضافة للشاشة الرئيسية" لأنه PWA حقيقي.
 
 ## إضافات جديدة
-- **نظام XP/رانك حقيقي**: كل مهمة بتكملها بتديك XP حسب صعوبتها، والرانك بيترقّى فعليًا (RECRUIT COMMANDER → COMMANDER → SENIOR COMMANDER → ELITE COMMANDER → COMMANDER PRIME) وبيتحدث في `command.html`.
+- **نظام XP/رانك حقيقي**: كل مهمة بتكملها بتديك XP حسب صعوبتها، والرانك بيترقّى فعليًا (RECRUIT COMMANDER → COMMANDER → SENIOR COMMANDER → ELITE COMMANDER → COMMANDER PRIME → COMMANDER APEX) وبيتحدث في `command.html`.
 - **رسايل تفاعلية**: تقدر ترد على أي thread في `messages.html`، والطاقم بيردّ عليك تلقائيًا بعد شوية.
 - **تنبيهات حية**: أي فعل بتعمله (broadcast, lockdown, إكمال مهمة, ترقية رانك) بيولّد alert جديد في `alerts.html`.
 - **Export / Import**: من `command.html` تقدر تصدّر الحالة بتاعتك كملف JSON أو تستوردها تاني.

@@ -57,5 +57,47 @@ const ACHIEVEMENTS = [
     icon: '&#128274;',
     desc: 'Engage system lockdown for the first time.',
     test: s => s.lockdown === true
+  },
+  {
+    id: 'twenty_closed',
+    name: 'EMPIRE BUILDER',
+    icon: '&#127970;',
+    desc: 'Complete 20 missions.',
+    test: s => s.completedMissions.length >= 20
+  },
+  {
+    id: 'prime_status',
+    name: 'PRIME STANDING',
+    icon: '&#128081;',
+    desc: 'Reach COMMANDER PRIME rank.',
+    test: s => s.xp >= 2000
+  },
+  {
+    id: 'network_grown',
+    name: 'GLOBAL NETWORK',
+    icon: '&#127760;',
+    desc: 'Send 10+ broadcasts to the full network.',
+    test: s => s.broadcastCount >= 10
+  },
+  {
+    id: 'seven_figures',
+    name: 'SEVEN FIGURES',
+    icon: '&#128176;',
+    desc: 'Earn $10,000+ from a single contract payout.',
+    test: s => s.transactions.some(t => t.dir === 'in' && t.amount >= 10000)
+  },
+  {
+    id: 'apex_status',
+    name: 'APEX STANDING',
+    icon: '&#128142;',
+    desc: 'Reach COMMANDER APEX rank — the top of the board.',
+    test: s => s.xp >= 3500
+  },
+  {
+    id: 'full_roster',
+    name: 'FULL ROSTER',
+    icon: '&#129309;',
+    desc: 'Recruit every unit onto active duty.',
+    test: s => s.recruited.length >= 15
   }
 ];

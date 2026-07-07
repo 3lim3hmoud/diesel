@@ -25,6 +25,10 @@ const MISSIONS = [
   { id:"dark_harvest", title:"DARK HARVEST", brief:"A long-run operation years in the making. Commander clearance only.", reward:"$2,000", diff:"EXTREME", base:"locked" },
   { id:"open_door", title:"OPEN DOOR", brief:"Leave one door unlocked for a friend, lock everything else behind it.", reward:"$250", diff:"LOW", base:"completed" },
   { id:"last_word", title:"LAST WORD", brief:"The mission that ends every other mission on this board.", reward:"???", diff:"???", base:"locked" },
+  { id:"hostile_buyout", title:"HOSTILE BUYOUT", brief:"Take over a rival network's entire operation in a single weekend.", reward:"$4,200", diff:"EXTREME", base:"active" },
+  { id:"satellite_reach", title:"SATELLITE REACH", brief:"Extend command's signal to three new continents without a single outage.", reward:"$2,700", diff:"HIGH", base:"active" },
+  { id:"empire_audit", title:"EMPIRE AUDIT", brief:"Run a full audit across all fifteen units with zero discrepancies.", reward:"$1,900", diff:"HIGH", base:"active" },
+  { id:"new_territory", title:"NEW TERRITORY", brief:"Establish a fourth command node in unclaimed ground before a rival crew does.", reward:"$3,500", diff:"EXTREME", base:"locked" },
 ];
 
 function missionStatusOf(m){
