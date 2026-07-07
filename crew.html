@@ -85,6 +85,35 @@
 
 <script src="js/matrix.js"></script>
 <script>
+const AVATAR_COLORS = ['#39ff6a','#d4ff3d','#3dd4ff','#ff8f3d','#b03dff','#ff5c8a'];
+
+function avatarColor(id){
+  let h = 0;
+  for(let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function initialsOf(name){
+  return name.slice(0, 2).toUpperCase();
+}
+
+function avatarSVG(c){
+  const color = avatarColor(c.id);
+  const gid = 'g-' + c.id;
+  return `
+    <svg viewBox="0 0 100 100" width="100%" height="100%" role="img" aria-label="${c.nm} avatar">
+      <defs>
+        <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="${color}" stop-opacity="0.4"/>
+          <stop offset="1" stop-color="${color}" stop-opacity="0.06"/>
+        </linearGradient>
+      </defs>
+      <polygon points="50,4 92,26 92,74 50,96 8,74 8,26" fill="url(#${gid})" stroke="${color}" stroke-width="3"/>
+      <text x="50" y="60" text-anchor="middle" font-family="'Rajdhani', sans-serif" font-weight="800" font-size="32" fill="${color}">${initialsOf(c.nm)}</text>
+    </svg>
+  `;
+}
+
 const CREW = [
   { id:"ghost", icon:"&#128123;", nm:"GHOST", rl:"INFILTRATION", lvl:9, status:"on",
     desc:"Gets into rooms nobody remembers opening a door for. Never speaks on comms, only in logs.",
@@ -136,16 +165,16 @@ const CREW = [
     relationship:"DIESEL's first call in any emergency. Never once been unreachable." },
   { id:"vortex", icon:"&#127786;&#65039;", nm:"VORTEX", rl:"MARKET STRATEGY", lvl:8, status:"on",
     desc:"Reads the market three moves ahead of everyone else on the board.",
-    successRate:93, log:[{t:"SILENT AUCTION",r:"SUCCESS"},{t:"DARK HARVEST",r:"SUCCESS"},{t:"LONG CON",r:"SUCCESS"}],
-    relationship:"Built the deal that doubled the crew's holdings — DIESEL still calls it the turning point." },
+    successRate:93, log:[{t:"SILENT AUCTION",r:"SUCCESS"},{t:"DARK HARVEST",r:"SUCCESS"},{t:"LONG CON",r:"SUCCESS"},{t:"HOSTILE BUYOUT",r:"SUCCESS"},{t:"NIGHT MARKET",r:"SUCCESS"}],
+    relationship:"Built the deal that doubled the crew's holdings — DIESEL still calls it the turning point. Reports market moves straight to command before the numbers ever hit a public feed." },
   { id:"sable", icon:"&#128007;", nm:"SABLE", rl:"EXPANSION OPS", lvl:7, status:"mission",
     desc:"Scouts new territory before the crew ever sets foot in it.",
-    successRate:87, log:[{t:"NIGHT MARKET",r:"SUCCESS"},{t:"RECRUIT",r:"SUCCESS"},{t:"OPEN DOOR",r:"SUCCESS"}],
-    relationship:"Opened three new command nodes this year alone, all still standing." },
+    successRate:87, log:[{t:"NIGHT MARKET",r:"SUCCESS"},{t:"RECRUIT",r:"SUCCESS"},{t:"OPEN DOOR",r:"SUCCESS"},{t:"NEW TERRITORY",r:"SUCCESS"}],
+    relationship:"Opened three new command nodes this year alone, all still standing. Never moves the crew onto ground SABLE hasn't cleared personally first." },
   { id:"anchor", icon:"&#9875;&#65039;", nm:"ANCHOR", rl:"OPERATIONS", lvl:8, status:"on",
     desc:"Keeps every moving piece on schedule so nothing slips through the cracks.",
-    successRate:95, log:[{t:"IRON VAULT",r:"SUCCESS"},{t:"SAFE HOUSE",r:"SUCCESS"},{t:"DEAD DROP",r:"SUCCESS"}],
-    relationship:"Runs the day-to-day so DIESEL only has to sign off on the big calls." }
+    successRate:95, log:[{t:"IRON VAULT",r:"SUCCESS"},{t:"SAFE HOUSE",r:"SUCCESS"},{t:"DEAD DROP",r:"SUCCESS"},{t:"EMPIRE AUDIT",r:"SUCCESS"}],
+    relationship:"Runs the day-to-day so DIESEL only has to sign off on the big calls. Every one of the fifteen units checks in through ANCHOR before it ever reaches command." }
 ];
 
 const STATUS_LABEL = { on:"online", mission:"on mission", off:"offline" };
@@ -155,7 +184,7 @@ function renderCrew(){
   grid.innerHTML = CREW.map(c => `
     <div class="crew-card" tabindex="0" role="button" aria-label="View ${c.nm} details"
       onclick="openCrewModal('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCrewModal('${c.id}');}">
-      <div class="top"><div class="ic">${c.icon}</div><div><div class="nm">${c.nm}</div><div class="rl">${c.rl}</div></div></div>
+      <div class="top"><div class="ic">${avatarSVG(c)}</div><div><div class="nm">${c.nm}</div><div class="rl">${c.rl}</div></div></div>
       <div class="desc">${c.desc}</div>
       <div class="meta"><span class="status-txt"><span class="status-dot ${c.status}"></span>${STATUS_LABEL[c.status]}</span><span class="badge">LVL ${c.lvl}</span></div>
     </div>
@@ -171,7 +200,7 @@ function openCrewModal(id){
   overlay.innerHTML = `
     <div class="dui-modal crew-modal" role="dialog" aria-modal="true">
       <div class="cm-top">
-        <div class="cm-ic">${c.icon}</div>
+        <div class="cm-ic">${avatarSVG(c)}</div>
         <div>
           <div class="cm-nm">${c.nm}</div>
           <div class="cm-rl">${c.rl} &middot; LVL ${c.lvl} &middot; ${STATUS_LABEL[c.status]}</div>

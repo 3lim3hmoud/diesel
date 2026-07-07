@@ -53,7 +53,7 @@
 
     <div class="subhead">
       <h1>// MISSION BOARD</h1>
-      <p><span id="closedCount">750</span> MISSIONS CLOSED TO DATE &middot; <span id="activeCount">24</span> CURRENT OPS BELOW &middot; CLAIM TO ASSIGN YOURSELF</p>
+      <p><span id="closedCount">1200</span> MISSIONS CLOSED TO DATE &middot; <span id="activeCount">37</span> CURRENT OPS BELOW &middot; CLAIM TO ASSIGN YOURSELF</p>
     </div>
 
     <div class="filters">
@@ -98,7 +98,7 @@ function render(){
   const counts = missionCounts();
   document.getElementById('opsTag').textContent = counts.active + ' OPS';
   document.getElementById('activeCount').textContent = counts.active;
-  document.getElementById('closedCount').textContent = 750 + DieselState.get().completedMissions.length;
+  document.getElementById('closedCount').textContent = 1200 + DieselState.get().completedMissions.length;
 
   MISSIONS.forEach(m => {
     const status = missionStatusOf(m);

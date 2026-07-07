@@ -280,7 +280,7 @@ function refreshUI(){
   const soundSw = document.getElementById('soundSwitch');
   if(soundSw) soundSw.classList.toggle('on', !!s.soundOn);
 
-  document.getElementById('completedNum').textContent = 750 + s.completedMissions.length;
+  document.getElementById('completedNum').textContent = 1200 + s.completedMissions.length;
 
   if(typeof MISSIONS !== 'undefined'){
     const counts = missionCounts();
