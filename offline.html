@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Node Unreachable</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  body{ display:flex; align-items:center; justify-content:center; min-height:100vh; padding:16px; }
+  .offline-wrap{
+    width:100%; max-width:480px; position:relative; z-index:2; text-align:center;
+    background:rgba(6,10,7,0.92); backdrop-filter:blur(3px);
+    border:1px solid var(--line); border-radius:10px; padding:40px 28px;
+    box-shadow:0 0 60px rgba(57,255,106,0.08);
+  }
+  .offline-ic{ font-size:44px; margin-bottom:14px; }
+  .offline-title{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:26px; letter-spacing:1px; color:#f2f3f5; margin-bottom:8px; }
+  .offline-sub{ font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--muted); letter-spacing:1px; line-height:1.8; margin-bottom:24px; }
+  .offline-sub .warn{ color:var(--acid); }
+  .retry-btn{
+    font-family:'Share Tech Mono', monospace; font-size:12.5px; letter-spacing:2px;
+    color:#02160a; background:var(--green); border:none; padding:12px 30px; border-radius:6px;
+    cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .retry-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 22px rgba(57,255,106,0.35); }
+  .offline-hint{ margin-top:18px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="offline-wrap">
+  <div class="offline-ic">&#128225;</div>
+  <div class="offline-title">CONNECTION LOST</div>
+  <div class="offline-sub">node signal not detected <span class="warn">&middot; retrying will not lose your saved data</span><br>rank, XP, missions and wallet all stay put on this device</div>
+  <button class="retry-btn" onclick="location.reload()">RETRY CONNECTION</button>
+  <div class="offline-hint">already-visited pages may still open from local cache</div>
+</div>
+
+<script src="js/matrix.js"></script>
+</body>
+</html>

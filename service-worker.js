@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diesel-command-v6';
+const CACHE_NAME = 'diesel-command-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -11,11 +11,15 @@ const ASSETS = [
   './map.html',
   './settings.html',
   './wallet.html',
+  './offline.html',
   './css/style.css',
   './js/matrix.js',
   './js/state.js',
   './js/sound.js',
   './js/theme.js',
+  './js/ui.js',
+  './js/missions-data.js',
+  './js/achievements-data.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -40,7 +44,10 @@ self.addEventListener('fetch', (event) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
-      }).catch(() => cached);
+      }).catch(() => {
+        if(event.request.mode === 'navigate') return caches.match('./offline.html');
+        return cached;
+      });
     })
   );
 });

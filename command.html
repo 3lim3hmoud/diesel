@@ -74,6 +74,13 @@
 
   .mini-mission{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-family:'Share Tech Mono', monospace; font-size:12px; }
   .mini-mission:last-child{ border-bottom:none; }
+
+  .ach-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px; margin-top:14px; }
+  .ach-badge{ border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:center; opacity:0.4; filter:grayscale(1); }
+  .ach-badge.unlocked{ opacity:1; filter:none; border-color:var(--green-dim); background:rgba(57,255,106,0.04); }
+  .ach-badge .ai{ font-size:22px; flex-shrink:0; }
+  .ach-badge .an{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:.5px; color:#dfe2e6; }
+  .ach-badge .ad{ font-size:10.5px; color:var(--muted); margin-top:2px; line-height:1.4; }
 </style>
 </head>
 <body>
@@ -139,7 +146,7 @@
     <div class="stats">
       <div class="stat highlight"><div class="num">2.4M</div><div class="lbl">Followers</div></div>
       <div class="stat"><div class="num green">12</div><div class="lbl">Crew Units</div></div>
-      <div class="stat"><div class="num">24</div><div class="lbl">Active Missions</div></div>
+      <div class="stat"><div class="num" id="activeNum">24</div><div class="lbl">Active Missions</div></div>
       <div class="stat"><div class="num" id="completedNum">750</div><div class="lbl">Completed</div></div>
       <div class="stat"><div class="num green" id="broadcastNum">0</div><div class="lbl">Broadcasts Sent</div></div>
     </div>
@@ -239,11 +246,13 @@
       </div>
       <div class="panel">
         <h3><span class="pre">MISSION STATUS</span><a class="more" href="missions.html">VIEW ALL &rarr;</a></h3>
-        <div class="mini-mission"><span>GHOST PROTOCOL &middot; $1,200</span><span class="badge">ACTIVE</span></div>
-        <div class="mini-mission"><span>SIGNAL BREAK &middot; $850</span><span class="badge acid">CLAIMED</span></div>
-        <div class="mini-mission"><span>VAULT RUN &middot; $3,000</span><span class="badge warn">LOCKED</span></div>
-        <div class="mini-mission"><span>CLEAN SWEEP &middot; $600</span><span class="badge muted">COMPLETED</span></div>
+        <div id="miniMissions"></div>
       </div>
+    </div>
+
+    <div class="panel" id="achievementsPanel">
+      <h3><span class="pre">ACHIEVEMENTS</span><span class="badge" id="achProgress">0 / 0</span></h3>
+      <div class="ach-grid" id="achGrid"></div>
     </div>
 
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
@@ -252,7 +261,10 @@
 
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
+<script src="js/missions-data.js"></script>
+<script src="js/achievements-data.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
 <script>
 function refreshUI(){
   const s = DieselState.get();
@@ -270,6 +282,27 @@ function refreshUI(){
 
   document.getElementById('completedNum').textContent = 750 + s.completedMissions.length;
 
+  if(typeof MISSIONS !== 'undefined'){
+    const counts = missionCounts();
+    document.getElementById('activeNum').textContent = counts.active;
+
+    const badgeMap = {
+      active: '<span class="badge">ACTIVE</span>',
+      claimed: '<span class="badge acid">CLAIMED</span>',
+      completed: '<span class="badge muted">COMPLETED</span>',
+      locked: '<span class="badge warn">LOCKED</span>'
+    };
+    // show claimed missions first (need attention), then active, then a couple of others
+    const order = { claimed:0, active:1, locked:2, completed:3 };
+    const preview = [...MISSIONS]
+      .sort((a,b) => order[missionStatusOf(a)] - order[missionStatusOf(b)])
+      .slice(0, 4);
+    document.getElementById('miniMissions').innerHTML = preview.map(m => {
+      const st = missionStatusOf(m);
+      return `<div class="mini-mission"><span>${m.title} &middot; ${m.reward}</span>${badgeMap[st]}</div>`;
+    }).join('');
+  }
+
   const rank = DieselState.rankFor(s.xp);
   const next = DieselState.nextRank(s.xp);
   document.getElementById('rankLabel').textContent = rank.label;
@@ -285,16 +318,47 @@ function refreshUI(){
     fill.style.width = '100%';
     val.textContent = s.xp + ' XP \u00b7 MAX RANK';
   }
+
+  if(typeof ACHIEVEMENTS !== 'undefined'){
+    document.getElementById('achProgress').textContent = s.achievements.length + ' / ' + ACHIEVEMENTS.length;
+    document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a => {
+      const unlocked = s.achievements.includes(a.id);
+      return `<div class="ach-badge ${unlocked ? 'unlocked' : ''}">
+        <div class="ai">${a.icon}</div>
+        <div><div class="an">${a.name}</div><div class="ad">${a.desc}</div></div>
+      </div>`;
+    }).join('');
+  }
 }
 
-function toggleLockdown(){ DieselSound.toggle(); DieselState.toggleLockdown(); refreshUI(); }
-function sendBroadcast(){ DieselSound.send(); DieselState.broadcast(); refreshUI(); }
+function showAchievementToasts(list, delayStart){
+  if(!list || !list.length) return;
+  list.forEach((a, i) => {
+    setTimeout(() => DieselUI.toast(`Achievement unlocked: ${a.name}`, { kind:'warn', duration:2600 }), delayStart + i * 700);
+  });
+}
+
+function toggleLockdown(){
+  DieselSound.toggle();
+  const { lockdown: on, newAchievements } = DieselState.toggleLockdown();
+  refreshUI();
+  DieselUI.toast(on ? 'Lockdown engaged \u2014 node sealed' : 'Lockdown disengaged \u2014 node open', { kind: on ? 'warn' : 'ok' });
+  showAchievementToasts(newAchievements, 900);
+}
+function sendBroadcast(){
+  DieselSound.send();
+  const { count: n, newAchievements } = DieselState.broadcast();
+  refreshUI();
+  DieselUI.toast(`Broadcast #${n} sent to all units`, { kind:'info' });
+  showAchievementToasts(newAchievements, 900);
+}
 function toggleSpotlight(){
   DieselSound.toggle();
   const s = DieselState.get();
   s.spotlight = !s.spotlight;
   DieselState.save(s);
   refreshUI();
+  DieselUI.toast(s.spotlight ? 'Spotlight mode enabled' : 'Spotlight mode disabled', { kind:'ok' });
 }
 function toggleSound(){
   const on = DieselState.toggleSound();
@@ -314,6 +378,7 @@ function exportLog(){
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  DieselUI.toast('Command log exported', { kind:'ok' });
 }
 
 function importLog(evt){
@@ -322,8 +387,8 @@ function importLog(evt){
   const reader = new FileReader();
   reader.onload = () => {
     const ok = DieselState.importState(reader.result);
-    if(ok){ DieselSound.success(); refreshUI(); }
-    else { DieselSound.alert(); alert('Invalid command log file.'); }
+    if(ok){ DieselSound.success(); refreshUI(); DieselUI.toast('Command log restored', { kind:'ok' }); }
+    else { DieselSound.alert(); DieselUI.toast('Invalid command log file', { kind:'err' }); }
     evt.target.value = '';
   };
   reader.readAsText(file);
