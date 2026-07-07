@@ -81,6 +81,19 @@
   .ach-badge .ai{ font-size:22px; flex-shrink:0; }
   .ach-badge .an{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:.5px; color:#dfe2e6; }
   .ach-badge .ad{ font-size:10.5px; color:var(--muted); margin-top:2px; line-height:1.4; }
+  .term{ font-family:'Share Tech Mono', monospace; font-size:12.5px; }
+  .term-out{ max-height:220px; overflow-y:auto; padding:4px 2px 10px; line-height:1.7; color:#a9afb6; }
+  .term-out .ln{ opacity:1; animation:none; white-space:pre-wrap; }
+  .term-out .cmd{ color:var(--green); }
+  .term-out .err{ color:var(--warn); }
+  .term-in{ display:flex; align-items:center; gap:8px; border-top:1px solid var(--line); padding-top:10px; }
+  .term-prompt{ color:var(--green); flex-shrink:0; }
+  .term-in input{
+    flex:1; background:transparent; border:none; outline:none; color:#f2f3f5;
+    font-family:'Share Tech Mono', monospace; font-size:12.5px; letter-spacing:.3px;
+  }
+  .xp-chart-empty{ font-family:'Share Tech Mono', monospace; font-size:11.5px; color:var(--muted); padding:6px 0 2px; }
+  .xp-chart svg{ width:100%; height:110px; display:block; }
 </style>
 </head>
 <body>
@@ -256,6 +269,22 @@
       <div class="ach-grid" id="achGrid"></div>
     </div>
 
+    <div class="panel">
+      <h3><span class="pre">XP PROGRESS</span><span class="badge muted" id="xpChartBadge">TRACKING</span></h3>
+      <div id="xpChartWrap"></div>
+    </div>
+
+    <div class="panel">
+      <h3><span class="pre">TERMINAL</span><span class="badge muted">NODE-01 SHELL</span></h3>
+      <div class="term" id="term">
+        <div class="term-out" id="termOut"></div>
+        <div class="term-in">
+          <span class="term-prompt">diesel@node-01:~$</span>
+          <input type="text" id="termInput" autocomplete="off" spellcheck="false" placeholder="type 'help'">
+        </div>
+      </div>
+    </div>
+
     <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
   </div>
 </div>
@@ -396,6 +425,116 @@ function importLog(evt){
   };
   reader.readAsText(file);
 }
+
+/* ---- terminal ---- */
+const TERM_HISTORY_KEY = 'diesel_term_history_v1';
+let termHistory = [];
+try{ termHistory = JSON.parse(sessionStorage.getItem(TERM_HISTORY_KEY)) || []; }catch(e){ termHistory = []; }
+let termHistPos = termHistory.length;
+
+function termPrint(text, cls){
+  const out = document.getElementById('termOut');
+  const div = document.createElement('div');
+  div.className = 'ln' + (cls ? ' ' + cls : '');
+  div.textContent = text;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+function termRun(raw){
+  const cmd = raw.trim();
+  if(!cmd) return;
+  termPrint('diesel@node-01:~$ ' + cmd, 'cmd');
+  termHistory.push(cmd);
+  termHistPos = termHistory.length;
+  try{ sessionStorage.setItem(TERM_HISTORY_KEY, JSON.stringify(termHistory.slice(-50))); }catch(e){}
+
+  const [name, ...args] = cmd.toLowerCase().split(/\s+/);
+  const s = DieselState.get();
+
+  switch(name){
+    case 'help':
+      termPrint('Available: whoami, status, balance, missions, rank, uptime, clear, echo <text>');
+      break;
+    case 'whoami':
+      termPrint('AL-MORADI EL-DIESEL — COMMANDER PRIME candidate — persona project');
+      break;
+    case 'status':
+      termPrint('LOCKDOWN: ' + (s.lockdown ? 'ENGAGED' : 'DISENGAGED') + ' | XP: ' + s.xp + ' | BROADCASTS: ' + s.broadcastCount);
+      break;
+    case 'balance': {
+      const totals = DieselState.walletTotals([], 63450);
+      termPrint('$' + Math.round(totals.balance).toLocaleString() + ' on record (see WALLET for full ledger)');
+      break;
+    }
+    case 'missions': {
+      const counts = typeof missionCounts === 'function' ? missionCounts() : null;
+      if(counts) termPrint('ACTIVE: ' + counts.active + ' | CLAIMED: ' + counts.claimed + ' | COMPLETED: ' + counts.completed + ' | LOCKED: ' + counts.locked);
+      else termPrint('Mission data unavailable from this shell.');
+      break;
+    }
+    case 'rank': {
+      const r = DieselState.rankFor(s.xp);
+      termPrint('TIER ' + r.tier + ' — ' + r.label + ' (' + s.xp + ' XP)');
+      break;
+    }
+    case 'uptime':
+      termPrint(typeof DieselSession !== 'undefined' ? DieselSession.uptimeStr(DieselSession.init()) : 'unknown');
+      break;
+    case 'clear':
+      document.getElementById('termOut').innerHTML = '';
+      return;
+    case 'echo':
+      termPrint(args.join(' '));
+      break;
+    default:
+      termPrint("command not found: '" + name + "' — type 'help'", 'err');
+  }
+}
+
+(function initTerm(){
+  const input = document.getElementById('termInput');
+  if(!input) return;
+  termPrint('DIESEL SHELL v1.0 — type \'help\' to list commands');
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      termRun(input.value);
+      input.value = '';
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      if(termHistPos > 0){ termHistPos--; input.value = termHistory[termHistPos] || ''; }
+    } else if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      if(termHistPos < termHistory.length - 1){ termHistPos++; input.value = termHistory[termHistPos] || ''; }
+      else { termHistPos = termHistory.length; input.value = ''; }
+    }
+  });
+})();
+
+/* ---- xp progress chart ---- */
+function renderXpChart(){
+  const wrap = document.getElementById('xpChartWrap');
+  const badge = document.getElementById('xpChartBadge');
+  if(!wrap) return;
+  const s = DieselState.get();
+  const hist = s.xpHistory || [];
+  if(hist.length < 2){
+    badge.textContent = 'AWAITING DATA';
+    wrap.innerHTML = '<div class="xp-chart-empty">Chart fills in as missions are completed — currently ' + s.xp + ' XP with ' + hist.length + ' recorded point' + (hist.length === 1 ? '' : 's') + '.</div>';
+    return;
+  }
+  badge.textContent = hist.length + ' POINTS';
+  const w = 600, h = 110, pad = 8;
+  const xs = hist.map((_, i) => pad + i * (w - pad * 2) / (hist.length - 1));
+  const maxXp = Math.max(...hist.map(p => p.xp), 1);
+  const ys = hist.map(p => h - pad - (p.xp / maxXp) * (h - pad * 2));
+  const points = xs.map((x, i) => x + ',' + ys[i]).join(' ');
+  wrap.innerHTML = `<div class="xp-chart"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polyline points="${points}" fill="none" stroke="var(--green)" stroke-width="2"/>
+    <circle cx="${xs[xs.length-1]}" cy="${ys[ys.length-1]}" r="4" fill="var(--green)"/>
+  </svg></div>`;
+}
+renderXpChart();
 
 refreshUI();
 
