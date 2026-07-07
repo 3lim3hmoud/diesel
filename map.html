@@ -405,8 +405,11 @@
     </div>
 
     <div class="territory-panel">
-      <div class="territory-head">// TERRITORY CONTROL — GROUND SYSTEM</div>
-      <div class="territory-sub">DIESEL influence vs. rival presence per region. Launching a ground operation takes ~3 minutes to settle.</div>
+      <div class="territory-head" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span>// TERRITORY CONTROL — GROUND SYSTEM</span>
+        <span class="badge" id="mapHeatBadge">HEAT — DORMANT</span>
+      </div>
+      <div class="territory-sub">DIESEL influence vs. rival presence per region. Launching a ground operation takes ~3 minutes to settle and raises HEAT — higher exposure lowers success odds on every op until it cools down.</div>
       <div class="territory-grid" id="territoryGrid"></div>
     </div>
 
@@ -435,6 +438,7 @@
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/console.js"></script>
 <script src="js/crew-data.js"></script>
 <script>
 const NODE_DATA = {
@@ -694,6 +698,17 @@ function tickDispatches(){
   renderDispatchLog();
   renderTerritories();
   renderOperations();
+  renderHeatBadge();
+}
+
+function renderHeatBadge(){
+  const el = document.getElementById('mapHeatBadge');
+  if(!el) return;
+  const s = DieselState.load();
+  const heat = Math.round(s.heat || 0);
+  const tier = DieselState.heatTier(heat);
+  el.textContent = 'HEAT ' + heat + '% — ' + tier.label;
+  el.className = 'badge' + (tier.cls === 'crit' || tier.cls === 'hot' ? ' warn' : tier.cls === 'elev' ? ' acid' : '');
 }
 
 // ---------- crew tie-in ----------
@@ -755,6 +770,7 @@ function launchGroundOpUI(code){
   renderTerritories();
   renderOperations();
   renderDispatchLog();
+  renderHeatBadge();
 }
 
 // ---------- global operations (high-level work) ----------
@@ -804,6 +820,7 @@ function launchOperationPhaseUI(opId){
   renderOperations();
   renderTerritories();
   renderDispatchLog();
+  renderHeatBadge();
 }
 
 // ---------- garrison tags on the node roster ----------
@@ -825,6 +842,7 @@ buildTargetOptions();
 renderDispatchLog();
 renderTerritories();
 renderOperations();
+renderHeatBadge();
 renderGarrisonTags();
 setInterval(tickDispatches, 1000);
 setInterval(() => {

@@ -155,6 +155,18 @@
     </div>
 
     <div class="controls">
+      <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="ctrl-name">EXPOSURE / HEAT</div>
+            <div class="ctrl-desc">rival attention drawn by recent operations — decays over time, faster under lockdown</div>
+          </div>
+          <span class="badge" id="heatTierBadge">DORMANT</span>
+        </div>
+        <div style="height:8px; border-radius:5px; background:var(--panel2); border:1px solid var(--line); overflow:hidden;">
+          <div id="heatBar" style="height:100%; width:0%; background:var(--green); transition:width .3s ease, background .3s ease;"></div>
+        </div>
+      </div>
       <div class="row">
         <div>
           <div class="ctrl-name">SYSTEM LOCKDOWN</div>
@@ -268,6 +280,7 @@
 <script src="js/achievements-data.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/console.js"></script>
 <script>
 function refreshUI(){
   const s = DieselState.get();
@@ -284,6 +297,19 @@ function refreshUI(){
   if(soundSw) soundSw.classList.toggle('on', !!s.soundOn);
 
   document.getElementById('completedNum').textContent = 1200 + s.completedMissions.length;
+
+  const heat = Math.round(s.heat || 0);
+  const tier = DieselState.heatTier(heat);
+  const heatBar = document.getElementById('heatBar');
+  const heatBadge = document.getElementById('heatTierBadge');
+  if(heatBar){
+    heatBar.style.width = heat + '%';
+    heatBar.style.background = tier.cls === 'crit' ? 'var(--warn)' : tier.cls === 'hot' ? '#ff8f3d' : tier.cls === 'elev' ? 'var(--acid)' : 'var(--green)';
+  }
+  if(heatBadge){
+    heatBadge.textContent = tier.label + ' \u00b7 ' + heat + '%';
+    heatBadge.className = 'badge' + (tier.cls === 'crit' || tier.cls === 'hot' ? ' warn' : tier.cls === 'elev' ? ' acid' : '');
+  }
 
   if(typeof MISSIONS !== 'undefined'){
     const counts = missionCounts();

@@ -32,7 +32,9 @@ const DieselState = {
       dispatches: [],          // { id, kind:'node'|'territory'|'operation', target, text, code, ts, status:'pending'|'done', reply, doneCode }
       firewallBlocks: 0,       // counter for FIREWALL sweeps run from the map
       territories: null,       // lazy-seeded control map, see TERRITORY_DEFAULTS
-      opProgress: {}           // { opId: { phase:0, done:false } }
+      opProgress: {},          // { opId: { phase:0, done:false } }
+      heat: 0,                 // 0-100 rival attention/exposure meter
+      lastVisit: Date.now()    // real-world timestamp used by runWorldTick()
     };
   },
 
@@ -62,11 +64,12 @@ const DieselState = {
   toggleLockdown(){
     const s = this.load();
     s.lockdown = !s.lockdown;
+    if(s.lockdown) s.heat = Math.max(0, s.heat - 12); // going dark cools exposure immediately
     this.save(s);
     this.addAlert('security', s.lockdown ? '&#128274;' : '&#128275;',
       s.lockdown ? 'System lockdown engaged — new connections held at the gate' : 'Lockdown disengaged — node open to new connections');
     const newAchievements = this.checkAchievements();
-    return { lockdown: s.lockdown, newAchievements };
+    return { lockdown: s.lockdown, newAchievements, heat: s.heat };
   },
 
   broadcast(){
@@ -334,6 +337,7 @@ const DieselState = {
     if(!t) return null;
     const lead = this._crewName(operativeId);
     const text = `Ground operation launched to contest ${t.name} and expand DIESEL influence.` + (lead ? ` ${lead} is leading the op.` : '');
+    this.addHeat(this.HEAT_PER_GROUND_OP);
     return this.addDispatch(code, text, 'territory', operativeId);
   },
 
@@ -343,12 +347,14 @@ const DieselState = {
     return c ? c.nm : null;
   },
 
-  _successChance(operativeId, fallback){
+  _successChance(operativeId, fallback, heat){
+    let base = fallback;
     if(operativeId && typeof CREW !== 'undefined'){
       const c = CREW.find(x => x.id === operativeId);
-      if(c) return Math.min(0.98, c.successRate / 100);
+      if(c) base = Math.min(0.98, c.successRate / 100);
     }
-    return fallback;
+    const heatPenalty = (heat || 0) / 400; // up to -0.25 at heat=100
+    return Math.max(0.08, base - heatPenalty);
   },
 
   _shiftTerritory(s, code, operativeId){
@@ -357,7 +363,7 @@ const DieselState = {
     if(!t) return { success:false, text:'Region unrecognized.', alertMsg:'Ground operation failed — unknown sector.' };
     const lead = this._crewName(operativeId);
     const leadNote = lead ? ` ${lead} led the op.` : '';
-    const success = Math.random() < this._successChance(operativeId, 0.72);
+    const success = Math.random() < this._successChance(operativeId, 0.72, s.heat);
     const swing = 3 + Math.floor(Math.random()*7); // 3-9%
     if(success){
       t.diesel = Math.min(100, t.diesel + swing);
@@ -399,6 +405,7 @@ const DieselState = {
     const phaseLabel = op.phases[prog.phase] || 'Final phase';
     const lead = this._crewName(operativeId);
     this.save(s);
+    this.addHeat(this.HEAT_PER_OP_PHASE);
     return this.addDispatch(opId, `${op.name} — ${phaseLabel}` + (lead ? ` (led by ${lead})` : ''), 'operation', operativeId);
   },
 
@@ -428,6 +435,76 @@ const DieselState = {
       text:`Phase complete: "${completedPhase}".${leadNote} Next up: "${nextPhase}".`,
       alertMsg:`${op.name} — phase ${prog.phase} of ${op.phases.length} complete`
     };
+  },
+
+  // ---------- heat / exposure meter ----------
+  HEAT_PER_GROUND_OP: 9,
+  HEAT_PER_OP_PHASE: 6,
+  HEAT_DECAY_PER_MIN: 0.55,       // passive decay, per real-world minute
+  HEAT_DECAY_LOCKDOWN_MULT: 1.7,   // lockdown hides you faster
+
+  addHeat(amount){
+    const s = this.load();
+    s.heat = Math.max(0, Math.min(100, s.heat + amount));
+    this.save(s);
+    if(s.heat >= 85){
+      this.addAlert('security', '&#128680;', 'Exposure critical — rival counter-surveillance actively hunting your signal');
+    } else if(s.heat >= 60 && s.heat - amount < 60){
+      this.addAlert('security', '&#9888;', 'Heat rising — recent operations have drawn unwanted attention');
+    }
+    return s.heat;
+  },
+
+  heatTier(heat){
+    if(heat >= 85) return { label: 'CRITICAL', cls: 'crit' };
+    if(heat >= 60) return { label: 'HOT',      cls: 'hot'  };
+    if(heat >= 30) return { label: 'ELEVATED', cls: 'elev' };
+    return { label: 'DORMANT', cls: 'calm' };
+  },
+
+  // ---------- world tick: simulates time passing while the user was away ----------
+  DEFAULT_REPLY_BANK: { },
+
+  runWorldTick(replyBank){
+    const s = this.load();
+    const now = Date.now();
+    if(!s.lastVisit){ s.lastVisit = now; this.save(s); return { awayMinutes: 0 }; }
+
+    const elapsedMs = now - s.lastVisit;
+    const elapsedMin = elapsedMs / 60000;
+    if(elapsedMin < 1){ return { awayMinutes: 0 }; } // avoid churn on rapid page nav
+
+    const cappedMin = Math.min(elapsedMin, 360); // simulate at most 6h of absence at once
+
+    // passive heat decay
+    const decayRate = this.HEAT_DECAY_PER_MIN * (s.lockdown ? this.HEAT_DECAY_LOCKDOWN_MULT : 1);
+    s.heat = Math.max(0, s.heat - decayRate * cappedMin);
+
+    // resolve anything that finished cooking while away
+    this.save(s);
+    this.resolveDueDispatches(replyBank || this.DEFAULT_REPLY_BANK);
+
+    // passive rival incursion — only rolls if gone long enough, and only if territories exist
+    let incursion = null;
+    const s2 = this.load();
+    if(s2.territories && cappedMin >= 5){
+      const chance = Math.min(0.55, cappedMin / 240 + s2.heat / 300);
+      if(Math.random() < chance){
+        const codes = Object.keys(s2.territories);
+        const code = codes[Math.floor(Math.random() * codes.length)];
+        const t = s2.territories[code];
+        const swing = 2 + Math.floor(Math.random() * 5);
+        t.rival = Math.min(100, t.rival + swing);
+        t.diesel = Math.max(0, t.diesel - Math.ceil(swing * 0.7));
+        t.neutral = Math.max(0, 100 - t.diesel - t.rival);
+        incursion = { code, name: t.name, swing };
+        this.addAlert('security', '&#9889;', `While you were offline: rival forces pushed into ${t.name} — DIESEL influence dipped to ${t.diesel}%`);
+      }
+    }
+
+    s2.lastVisit = now;
+    this.save(s2);
+    return { awayMinutes: Math.round(cappedMin), heatAfter: s2.heat, incursion };
   },
 
   // ---------- map: firewall sweep ----------

@@ -84,18 +84,39 @@
 </div>
 
 <script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
 <script src="js/crew-data.js"></script>
+<script src="js/console.js"></script>
 <script>
+// live-computed "who's actually out on assignment right now" — reads real
+// pending dispatches from the map system instead of trusting the static status field
+function activeAssignments(){
+  const map = {};
+  if(!window.DieselState) return map;
+  DieselState.getDispatches().filter(d => d.status === 'pending' && d.operative).forEach(d => {
+    const remainMs = Math.max(0, (d.ts + DieselState.DISPATCH_DELAY_MS) - Date.now());
+    map[d.operative] = Math.ceil(remainMs / 60000);
+  });
+  return map;
+}
+
 function renderCrew(){
   const grid = document.getElementById('crewGrid');
-  grid.innerHTML = CREW.map(c => `
+  const busy = activeAssignments();
+  grid.innerHTML = CREW.map(c => {
+    const eta = busy[c.id];
+    const statusHtml = (eta !== undefined)
+      ? `<span class="status-txt"><span class="status-dot mission"></span>ON ASSIGNMENT &middot; back in ~${eta}m</span>`
+      : `<span class="status-txt"><span class="status-dot ${c.status}"></span>${STATUS_LABEL[c.status]}</span>`;
+    return `
     <div class="crew-card" tabindex="0" role="button" aria-label="View ${c.nm} details"
       onclick="openCrewModal('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCrewModal('${c.id}');}">
       <div class="top"><div class="ic">${avatarSVG(c)}</div><div><div class="nm">${c.nm}</div><div class="rl">${c.rl}</div></div></div>
       <div class="desc">${c.desc}</div>
-      <div class="meta"><span class="status-txt"><span class="status-dot ${c.status}"></span>${STATUS_LABEL[c.status]}</span><span class="badge">LVL ${c.lvl}</span></div>
-    </div>
-  `).join('');
+      <div class="meta">${statusHtml}<span class="badge">LVL ${c.lvl}</span></div>
+    </div>`;
+  }).join('');
 }
 
 function openCrewModal(id){
@@ -147,6 +168,7 @@ function openCrewModal(id){
 }
 
 renderCrew();
+setInterval(renderCrew, 20000); // keep ETAs fresh without needing a refresh
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
