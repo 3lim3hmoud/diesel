@@ -207,6 +207,18 @@
   .op-card button:disabled{ opacity:0.45; cursor:default; }
   .op-card .pending-note{ font-family:'Share Tech Mono', monospace; font-size:10px; color:#7fe6ff; margin-top:8px; }
   .op-card .complete-note{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--green); margin-top:8px; }
+
+  /* ---- crew tie-in: garrison tags + operative lead selects ---- */
+  .garrison-tag{
+    display:inline-flex; align-items:center; gap:5px; margin-top:5px; font-family:'Share Tech Mono', monospace; font-size:9.5px;
+    color:var(--acid); border:1px solid #4d5a1a; background:rgba(212,255,61,0.06); padding:2px 7px; border-radius:4px;
+  }
+  .lead-select{
+    width:100%; margin-top:8px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--text);
+    background:#050506; border:1px solid var(--line); border-radius:6px; padding:6px 8px;
+  }
+  .lead-select option:disabled{ color:var(--muted); }
+  .chatter-garrison{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--acid); margin-bottom:8px; }
 </style>
 </head>
 <body>
@@ -423,6 +435,7 @@
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/crew-data.js"></script>
 <script>
 const NODE_DATA = {
   "COMMAND-01": { status:"COMMAND", chatter:[
@@ -549,7 +562,11 @@ function selectNode(circle, name){
   document.getElementById('chatterStatus').textContent = data.status;
 
   const body = document.getElementById('chatterBody');
-  body.innerHTML = `<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">${statusText}</div>`;
+  const garrison = garrisonFor(name);
+  const garrisonLine = garrison
+    ? `<div class="chatter-garrison">&#9875;&#65039; GARRISONED BY ${garrison.nm} &middot; ${garrison.rl}</div>`
+    : `<div class="chatter-garrison" style="color:var(--muted);">No fixed garrison — mobile agents only.</div>`;
+  body.innerHTML = garrisonLine + `<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">${statusText}</div>`;
 
   data.chatter.forEach((line, i) => {
     setTimeout(() => {
@@ -679,6 +696,24 @@ function tickDispatches(){
   renderOperations();
 }
 
+// ---------- crew tie-in ----------
+function busyCrewIds(){
+  return new Set(
+    DieselState.getDispatches().filter(d => d.status === 'pending' && d.operative).map(d => d.operative)
+  );
+}
+
+function crewOptionsHtml(){
+  const busy = busyCrewIds();
+  const opts = CREW.map(c => {
+    const station = stationOf(c.id);
+    const label = `${c.nm} · ${c.rl} · ${c.successRate}%${station ? ' · ' + station : ' · mobile'}`;
+    const disabled = busy.has(c.id) ? 'disabled' : '';
+    return `<option value="${c.id}" ${disabled}>${busy.has(c.id) ? '⏳ ' : ''}${label}</option>`;
+  }).join('');
+  return `<option value="">— no lead, base squad handles it —</option>` + opts;
+}
+
 // ---------- territory control (ground system) ----------
 function pendingTerritoryOp(code){
   return DieselState.getDispatches().find(d => d.kind === 'territory' && d.target === code && d.status === 'pending');
@@ -703,8 +738,9 @@ function renderTerritories(){
         <span><i style="background:#3a4238"></i>Neutral</span>
       </div>
       ${pending
-        ? `<div class="pending-note">GROUND OP IN PROGRESS — ETA <span class="eta-terr" data-ts="${pending.ts}">${timeLeftLabel(pending.ts)}</span></div>`
-        : `<button onclick="launchGroundOpUI('${code}')">LAUNCH GROUND OPERATION</button>`
+        ? `<div class="pending-note">GROUND OP IN PROGRESS${pending.operative ? ' — LED BY ' + (crewById(pending.operative)||{}).nm : ''} — ETA <span class="eta-terr" data-ts="${pending.ts}">${timeLeftLabel(pending.ts)}</span></div>`
+        : `<select class="lead-select" id="lead-terr-${code}">${crewOptionsHtml()}</select>
+           <button onclick="launchGroundOpUI('${code}')">LAUNCH GROUND OPERATION</button>`
       }
     </div>`;
   }).join('');
@@ -712,9 +748,12 @@ function renderTerritories(){
 
 function launchGroundOpUI(code){
   if(pendingTerritoryOp(code)) return;
-  DieselState.launchGroundOp(code);
+  const sel = document.getElementById('lead-terr-' + code);
+  const leadId = sel ? sel.value : '';
+  DieselState.launchGroundOp(code, leadId || null);
   DieselSound.send();
   renderTerritories();
+  renderOperations();
   renderDispatchLog();
 }
 
@@ -740,9 +779,10 @@ function renderOperations(){
     if(prog.done){
       actionHtml = `<div class="complete-note">&#9989; OPERATION COMPLETE — +${op.reward} XP BANKED</div>`;
     } else if(pending){
-      actionHtml = `<div class="pending-note">PHASE IN PROGRESS — ETA <span class="eta-op" data-ts="${pending.ts}">${timeLeftLabel(pending.ts)}</span></div>`;
+      actionHtml = `<div class="pending-note">PHASE IN PROGRESS${pending.operative ? ' — LED BY ' + (crewById(pending.operative)||{}).nm : ''} — ETA <span class="eta-op" data-ts="${pending.ts}">${timeLeftLabel(pending.ts)}</span></div>`;
     } else {
-      actionHtml = `<button onclick="launchOperationPhaseUI('${op.id}')">LAUNCH PHASE ${prog.phase + 1} OF ${op.phases.length}</button>`;
+      actionHtml = `<select class="lead-select" id="lead-op-${op.id}">${crewOptionsHtml()}</select>
+        <button onclick="launchOperationPhaseUI('${op.id}')">LAUNCH PHASE ${prog.phase + 1} OF ${op.phases.length}</button>`;
     }
 
     return `<div class="op-card">
@@ -756,17 +796,36 @@ function renderOperations(){
 
 function launchOperationPhaseUI(opId){
   if(pendingOperationOp(opId)) return;
-  const entry = DieselState.launchOperationPhase(opId);
+  const sel = document.getElementById('lead-op-' + opId);
+  const leadId = sel ? sel.value : '';
+  const entry = DieselState.launchOperationPhase(opId, leadId || null);
   if(!entry) return;
   DieselSound.send();
   renderOperations();
+  renderTerritories();
   renderDispatchLog();
+}
+
+// ---------- garrison tags on the node roster ----------
+function renderGarrisonTags(){
+  Object.keys(NODE_GARRISON).forEach(nodeId => {
+    const card = document.getElementById('card-' + nodeId);
+    if(!card) return;
+    const c = garrisonFor(nodeId);
+    if(!c) return;
+    if(card.querySelector('.garrison-tag')) return; // already tagged
+    const tag = document.createElement('div');
+    tag.className = 'garrison-tag';
+    tag.innerHTML = `&#9875;&#65039; ${c.nm} &middot; ${c.rl}`;
+    card.appendChild(tag);
+  });
 }
 
 buildTargetOptions();
 renderDispatchLog();
 renderTerritories();
 renderOperations();
+renderGarrisonTags();
 setInterval(tickDispatches, 1000);
 setInterval(() => {
   document.querySelectorAll('.eta-terr, .eta-op').forEach(el => {
@@ -774,6 +833,13 @@ setInterval(() => {
   });
 }, 1000);
 document.getElementById('statFirewall').textContent = DieselState.get().firewallBlocks;
+
+// deep-link support: map.html?node=SABLE-STATION-ID jumps straight to that node's intercept feed
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const target = params.get('node');
+  if(target && NODE_DATA[target]) selectNode(null, target);
+})();
 
 document.getElementById('dispatchText').addEventListener('keydown', e => {
   if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendDispatch(); }

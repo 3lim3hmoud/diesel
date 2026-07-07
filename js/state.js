@@ -258,12 +258,13 @@ const DieselState = {
     return `${hex()}-${hex()}`;
   },
 
-  addDispatch(target, text, kind){
+  addDispatch(target, text, kind, operative){
     const s = this.load();
     const entry = {
       id: 'dsp_' + Date.now() + '_' + Math.floor(Math.random()*1000),
       kind: kind || 'node',
       target, text,
+      operative: operative || null,
       code: this.genCode(),
       ts: Date.now(),
       status: 'pending',
@@ -289,11 +290,11 @@ const DieselState = {
         d.reply = bank[Math.floor(Math.random()*bank.length)];
 
         if(d.kind === 'territory'){
-          const result = this._shiftTerritory(s, d.target);
+          const result = this._shiftTerritory(s, d.target, d.operative);
           d.reply = result.text;
           this.addAlert('growth', result.success ? '&#127760;' : '&#9888;', result.alertMsg);
         } else if(d.kind === 'operation'){
-          const result = this._advanceOperation(s, d.target);
+          const result = this._advanceOperation(s, d.target, d.operative);
           d.reply = result.text;
           if(result.finished) this.addAlert('growth', '&#127942;', result.alertMsg);
           else this.addAlert('mission', '&#128225;', result.alertMsg);
@@ -328,17 +329,35 @@ const DieselState = {
     return s.territories;
   },
 
-  launchGroundOp(code){
+  launchGroundOp(code, operativeId){
     const t = this.getTerritories()[code];
     if(!t) return null;
-    return this.addDispatch(code, `Ground operation launched to contest ${t.name} and expand DIESEL influence.`, 'territory');
+    const lead = this._crewName(operativeId);
+    const text = `Ground operation launched to contest ${t.name} and expand DIESEL influence.` + (lead ? ` ${lead} is leading the op.` : '');
+    return this.addDispatch(code, text, 'territory', operativeId);
   },
 
-  _shiftTerritory(s, code){
+  _crewName(operativeId){
+    if(!operativeId || typeof CREW === 'undefined') return null;
+    const c = CREW.find(x => x.id === operativeId);
+    return c ? c.nm : null;
+  },
+
+  _successChance(operativeId, fallback){
+    if(operativeId && typeof CREW !== 'undefined'){
+      const c = CREW.find(x => x.id === operativeId);
+      if(c) return Math.min(0.98, c.successRate / 100);
+    }
+    return fallback;
+  },
+
+  _shiftTerritory(s, code, operativeId){
     if(!s.territories) s.territories = JSON.parse(JSON.stringify(this.TERRITORY_DEFAULTS));
     const t = s.territories[code];
     if(!t) return { success:false, text:'Region unrecognized.', alertMsg:'Ground operation failed — unknown sector.' };
-    const success = Math.random() < 0.72; // ground teams usually make headway
+    const lead = this._crewName(operativeId);
+    const leadNote = lead ? ` ${lead} led the op.` : '';
+    const success = Math.random() < this._successChance(operativeId, 0.72);
     const swing = 3 + Math.floor(Math.random()*7); // 3-9%
     if(success){
       t.diesel = Math.min(100, t.diesel + swing);
@@ -347,7 +366,7 @@ const DieselState = {
       t.neutral = Math.max(0, 100 - t.diesel - t.rival);
       return {
         success:true,
-        text:`Ground team secured new footing in ${t.name}. DIESEL influence now ${t.diesel}%.`,
+        text:`Ground team secured new footing in ${t.name}. DIESEL influence now ${t.diesel}%.${leadNote}`,
         alertMsg:`Territory shift — DIESEL influence in ${t.name} rose to ${t.diesel}%`
       };
     } else {
@@ -356,7 +375,7 @@ const DieselState = {
       t.neutral = Math.max(0, 100 - t.diesel - t.rival);
       return {
         success:false,
-        text:`Pushback in ${t.name} — rival presence held the line. DIESEL influence dipped to ${t.diesel}%.`,
+        text:`Pushback in ${t.name} — rival presence held the line. DIESEL influence dipped to ${t.diesel}%.${leadNote}`,
         alertMsg:`Territory contest lost ground in ${t.name} — down to ${t.diesel}%`
       };
     }
@@ -371,24 +390,27 @@ const DieselState = {
 
   getOpProgress(){ return this.load().opProgress || {}; },
 
-  launchOperationPhase(opId){
+  launchOperationPhase(opId, operativeId){
     const op = this.OPERATIONS.find(o => o.id === opId);
     if(!op) return null;
     const s = this.load();
     const prog = s.opProgress[opId] || { phase:0, done:false };
     if(prog.done) return null;
     const phaseLabel = op.phases[prog.phase] || 'Final phase';
+    const lead = this._crewName(operativeId);
     this.save(s);
-    return this.addDispatch(opId, `${op.name} — ${phaseLabel}`, 'operation');
+    return this.addDispatch(opId, `${op.name} — ${phaseLabel}` + (lead ? ` (led by ${lead})` : ''), 'operation', operativeId);
   },
 
-  _advanceOperation(s, opId){
+  _advanceOperation(s, opId, operativeId){
     const op = this.OPERATIONS.find(o => o.id === opId);
     if(!s.opProgress) s.opProgress = {};
     if(!s.opProgress[opId]) s.opProgress[opId] = { phase:0, done:false };
     const prog = s.opProgress[opId];
     if(!op || prog.done) return { finished:false, text:'Operation already closed out.', alertMsg:'' };
 
+    const lead = this._crewName(operativeId);
+    const leadNote = lead ? ` ${lead} handled it personally.` : '';
     const completedPhase = op.phases[prog.phase];
     prog.phase++;
     if(prog.phase >= op.phases.length){
@@ -396,14 +418,14 @@ const DieselState = {
       this.addXp(op.reward);
       return {
         finished:true,
-        text:`Phase complete: "${completedPhase}". ${op.name} is fully closed out — clean.`,
+        text:`Phase complete: "${completedPhase}".${leadNote} ${op.name} is fully closed out — clean.`,
         alertMsg:`${op.name} complete — +${op.reward} XP earned`
       };
     }
     const nextPhase = op.phases[prog.phase];
     return {
       finished:false,
-      text:`Phase complete: "${completedPhase}". Next up: "${nextPhase}".`,
+      text:`Phase complete: "${completedPhase}".${leadNote} Next up: "${nextPhase}".`,
       alertMsg:`${op.name} — phase ${prog.phase} of ${op.phases.length} complete`
     };
   },
