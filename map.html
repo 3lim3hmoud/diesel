@@ -18,6 +18,8 @@
   .map-frame{
     background:
       linear-gradient(180deg, rgba(2,4,3,0.08), rgba(2,4,3,0.1) 55%, rgba(2,4,3,0.3)),
+      radial-gradient(ellipse 130% 95% at 28% 22%, rgba(255,255,255,0.055), transparent 55%),
+      radial-gradient(ellipse 120% 100% at 78% 85%, rgba(0,0,0,0.22), transparent 60%),
       url('images/world-network-bg.jpg');
     background-size:cover; background-position:center 42%;
     border:1px solid var(--line); border-radius:10px; padding:14px 14px 6px; overflow:hidden; position:relative;
@@ -219,6 +221,23 @@
   }
   .lead-select option:disabled{ color:var(--muted); }
   .chatter-garrison{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--acid); margin-bottom:8px; }
+
+  /* ---- faction intel: threat assessment system ---- */
+  .faction-panel{ margin:0 28px 26px; padding:16px 16px 18px; background:rgba(6,10,7,0.7); border:1px solid var(--line); border-radius:8px; }
+  .faction-head{ font-family:'Share Tech Mono', monospace; font-size:11px; letter-spacing:2px; color:var(--warn); margin-bottom:4px; }
+  .faction-sub{ font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--muted); margin-bottom:14px; }
+  .faction-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .faction-card{ border:1px solid #5a1a1a; border-radius:8px; padding:14px; background:rgba(255,59,59,0.05); cursor:pointer; transition:background .15s ease; }
+  .faction-card:hover{ background:rgba(255,59,59,0.1); }
+  .faction-card .row1{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .faction-card .fname{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:14.5px; color:#ff9d9d; letter-spacing:0.5px; }
+  .faction-card .fstatus{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; }
+  .faction-card .fregion{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:4px; }
+  .faction-card .fregion b{ color:#c3c8cd; }
+  .threat-bar{ height:8px; border-radius:4px; overflow:hidden; background:#1a0a0a; border:1px solid #3a1616; margin-top:10px; }
+  .threat-bar i{ display:block; height:100%; background:linear-gradient(90deg, #ff9d3d, #ff3b3b); }
+  .threat-lbl{ display:flex; justify-content:space-between; font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); margin-top:5px; }
+  .threat-lbl .tier{ color:#ff8080; font-weight:700; }
 </style>
 </head>
 <body>
@@ -230,7 +249,7 @@
   <div class="browser-chrome">
     <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
     <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/map</div>
-    <div class="sys-tag">9 NODES // 6 HOSTILE ORGS TRACKED</div>
+    <div class="sys-tag">13 NODES // 10 HOSTILE ORGS TRACKED</div>
   </div>
 
   <div class="page">
@@ -249,14 +268,14 @@
 
     <div class="subhead">
       <h1>// GLOBAL OPERATIONS MAP</h1>
-      <p>NINE NODES ACROSS SIX CONTINENTS &middot; 6 RIVAL ORGS TRACKED &middot; LIVE INTERCEPT FEED ON SELECT</p>
+      <p>THIRTEEN NODES ACROSS SIX CONTINENTS &middot; 10 RIVAL ORGS TRACKED &middot; LIVE INTERCEPT FEED ON SELECT</p>
     </div>
 
     <div class="world-stats">
       <div class="cell"><div class="lbl">COVERAGE</div><div class="val">6 CONTINENTS</div></div>
       <div class="cell"><div class="lbl">REGIONS MAPPED</div><div class="val acid">190+</div></div>
       <div class="cell"><div class="lbl">MESH UPTIME</div><div class="val">99.98%</div></div>
-      <div class="cell"><div class="lbl">RIVAL ORGS TRACKED</div><div class="val warn">6</div></div>
+      <div class="cell"><div class="lbl">RIVAL ORGS TRACKED</div><div class="val warn">10</div></div>
       <div class="cell"><div class="lbl">FIREWALL BLOCKS</div><div class="val" id="statFirewall">0</div></div>
       <div class="cell"><div class="lbl">CHAIN OF COMMAND</div><div class="val acid">DIESEL</div></div>
     </div>
@@ -358,6 +377,42 @@
           <rect class="rival-mark" x="372" y="242" width="16" height="16" transform="rotate(45 380 250)" data-node="IRON-CHOIR" onclick="selectNode(this,'IRON-CHOIR')"></rect>
           <text class="rival-label" x="380" y="235" text-anchor="middle">IRON CHOIR</text>
           <text class="rival-sub" x="380" y="273" text-anchor="middle">rival &middot; West Africa corridor</text>
+
+          <circle class="node-dot watch" cx="520" cy="50" r="9" data-node="OSLO-RELAY" onclick="selectNode(this,'OSLO-RELAY')"></circle>
+          <text class="node-label" x="520" y="35" text-anchor="middle">OSLO RELAY</text>
+          <text class="node-sub" x="520" y="73" text-anchor="middle">arctic signal post</text>
+
+          <circle class="node-dot active" cx="595" cy="235" r="9" data-node="MUMBAI-STATION" onclick="selectNode(this,'MUMBAI-STATION')"></circle>
+          <text class="node-label" x="595" y="255" text-anchor="middle">MUMBAI STATION</text>
+          <text class="node-sub" x="595" y="220" text-anchor="middle">financial intercept</text>
+
+          <circle class="rival-pulse" cx="345" cy="140" r="8"></circle>
+          <rect class="rival-mark" x="337" y="132" width="16" height="16" transform="rotate(45 345 140)" data-node="VOID-BROKER" onclick="selectNode(this,'VOID-BROKER')"></rect>
+          <text class="rival-label" x="345" y="125" text-anchor="middle">VOID BROKER</text>
+          <text class="rival-sub" x="345" y="163" text-anchor="middle">rival &middot; Central Asian corridor</text>
+
+          <circle class="rival-pulse" cx="665" cy="265" r="8"></circle>
+          <rect class="rival-mark" x="657" y="257" width="16" height="16" transform="rotate(45 665 265)" data-node="RED-LANTERN" onclick="selectNode(this,'RED-LANTERN')"></rect>
+          <text class="rival-label" x="665" y="288" text-anchor="middle">RED LANTERN</text>
+          <text class="rival-sub" x="665" y="303" text-anchor="middle">rival &middot; Southeast Asia corridor</text>
+
+          <circle class="node-dot dim" cx="410" cy="45" r="9" data-node="REYKJAVIK-ECHO" onclick="selectNode(this,'REYKJAVIK-ECHO')"></circle>
+          <text class="node-label" x="410" y="30" text-anchor="middle">REYKJAVIK ECHO</text>
+          <text class="node-sub" x="410" y="63" text-anchor="middle">north atlantic watch</text>
+
+          <circle class="node-dot watch" cx="170" cy="350" r="9" data-node="SANTIAGO-CELL" onclick="selectNode(this,'SANTIAGO-CELL')"></circle>
+          <text class="node-label" x="170" y="335" text-anchor="middle">SANTIAGO CELL</text>
+          <text class="node-sub" x="170" y="373" text-anchor="middle">southern cone watch</text>
+
+          <circle class="rival-pulse" cx="515" cy="140" r="8"></circle>
+          <rect class="rival-mark" x="507" y="132" width="16" height="16" transform="rotate(45 515 140)" data-node="GLASS-CURTAIN" onclick="selectNode(this,'GLASS-CURTAIN')"></rect>
+          <text class="rival-label" x="515" y="125" text-anchor="middle">GLASS CURTAIN</text>
+          <text class="rival-sub" x="515" y="163" text-anchor="middle">rival &middot; Balkans corridor</text>
+
+          <circle class="rival-pulse" cx="800" cy="190" r="8"></circle>
+          <rect class="rival-mark" x="792" y="182" width="16" height="16" transform="rotate(45 800 190)" data-node="PALE-ARCHIVE" onclick="selectNode(this,'PALE-ARCHIVE')"></rect>
+          <text class="rival-label" x="800" y="175" text-anchor="middle">PALE ARCHIVE</text>
+          <text class="rival-sub" x="800" y="213" text-anchor="middle">rival &middot; Pacific corridor</text>
         </svg>
 
         <div class="firewall-overlay" id="firewallOverlay">
@@ -402,6 +457,20 @@
       <div class="node-card" id="card-CRIMSON-LEDGER" onclick="selectNode(null,'CRIMSON-LEDGER')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">CRIMSON LEDGER</div><div class="st">Andes corridor &middot; rival &middot; runs shell finance for three cells</div></div>
       <div class="node-card" id="card-GHOST-MARKET" onclick="selectNode(null,'GHOST-MARKET')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">GHOST MARKET</div><div class="st">Gulf corridor &middot; rival &middot; brokers access to seized nodes</div></div>
       <div class="node-card" id="card-IRON-CHOIR" onclick="selectNode(null,'IRON-CHOIR')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">IRON CHOIR</div><div class="st">West Africa corridor &middot; rival &middot; recruiting out of LAGOS LINE's backyard</div></div>
+      <div class="node-card" id="card-OSLO-RELAY" onclick="selectNode(null,'OSLO-RELAY')"><div class="nm">OSLO RELAY</div><div class="st">Oslo &middot; arctic signal post &middot; monitoring the northern approach</div></div>
+      <div class="node-card" id="card-MUMBAI-STATION" onclick="selectNode(null,'MUMBAI-STATION')"><div class="nm">MUMBAI STATION</div><div class="st">Mumbai &middot; financial intercept &middot; live and fully active</div></div>
+      <div class="node-card" id="card-VOID-BROKER" onclick="selectNode(null,'VOID-BROKER')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">VOID BROKER</div><div class="st">Central Asian corridor &middot; rival &middot; no fixed base, moves constantly</div></div>
+      <div class="node-card" id="card-RED-LANTERN" onclick="selectNode(null,'RED-LANTERN')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">RED LANTERN</div><div class="st">Southeast Asia corridor &middot; rival &middot; expanding fast, eyeing MUMBAI STATION</div></div>
+      <div class="node-card" id="card-REYKJAVIK-ECHO" onclick="selectNode(null,'REYKJAVIK-ECHO')"><div class="nm">REYKJAVIK ECHO</div><div class="st">Reykjavik &middot; dormant &middot; north Atlantic listening post</div></div>
+      <div class="node-card" id="card-SANTIAGO-CELL" onclick="selectNode(null,'SANTIAGO-CELL')"><div class="nm">SANTIAGO CELL</div><div class="st">Santiago &middot; watching &middot; southern cone corridor traffic</div></div>
+      <div class="node-card" id="card-GLASS-CURTAIN" onclick="selectNode(null,'GLASS-CURTAIN')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">GLASS CURTAIN</div><div class="st">Balkans corridor &middot; rival &middot; no confirmed leadership</div></div>
+      <div class="node-card" id="card-PALE-ARCHIVE" onclick="selectNode(null,'PALE-ARCHIVE')" style="border-left:2px solid #ff3b3b;"><div class="nm" style="color:#ff8080;">PALE ARCHIVE</div><div class="st">Pacific corridor &middot; rival &middot; chatter climbing for two weeks</div></div>
+    </div>
+
+    <div class="faction-panel">
+      <div class="faction-head">// FACTION INTEL — THREAT ASSESSMENT SYSTEM</div>
+      <div class="faction-sub">Every tracked rival organization, cross-referenced against the territory it operates out of. Threat score blends aggression, reach and how confirmed their identity is.</div>
+      <div class="faction-grid" id="factionGrid"></div>
     </div>
 
     <div class="territory-panel">
@@ -516,6 +585,46 @@ const NODE_DATA = {
     "ANCHOR: they've been recruiting two blocks from LAGOS LINE.",
     "Fragment recovered: '...the dormant one won't stay dormant forever...'",
     "Recommend keeping LAGOS LINE dark a while longer."
+  ]},
+  "OSLO-RELAY": { status:"MONITORING", chatter:[
+    "FROST: arctic link stable, weather's the only thing jamming us up here.",
+    "Cold post, quiet post — nothing crossing this line unnoticed.",
+    "Standing by to relay north if BLACKVAULT-13 ever needs backup."
+  ]},
+  "MUMBAI-STATION": { status:"ACTIVE", chatter:[
+    "TALON: financial feeds clean, three shell accounts flagged and logged.",
+    "Station's fully online, cross-referencing against CRIMSON LEDGER patterns.",
+    "No rival fingerprints on this exchange yet — staying sharp."
+  ]},
+  "VOID-BROKER": { status:"UNCONFIRMED", chatter:[
+    "Fragment recovered: '...steppe route stays open as long as nobody asks who owns it...'",
+    "WRAITH: no fixed base, moves the whole operation every few weeks.",
+    "Recommend treating every contact from this one as a trap until proven otherwise."
+  ]},
+  "RED-LANTERN": { status:"HOSTILE", chatter:[
+    "Fragment recovered: '...MUMBAI STATION won't stay unwatched for long...'",
+    "VORTEX: aggressive expansion out of the Southeast Asia corridor, fast growth.",
+    "Recommend reinforcing SYDNEY WATCH's southern approach as a precaution."
+  ]},
+  "REYKJAVIK-ECHO": { status:"DORMANT", chatter:[
+    "FROST: nothing crossing the north Atlantic line this cycle.",
+    "Cold, dark, exactly how a listening post should be.",
+    "Ready to light up the moment OSLO RELAY needs a second set of ears."
+  ]},
+  "SANTIAGO-CELL": { status:"WATCHING", chatter:[
+    "TALON: keeping an eye on the southern cone, CRIMSON LEDGER's getting bolder.",
+    "No direct contact yet, just watching the corridor traffic.",
+    "Recommend SAFEHOUSE-4 stay looped in on anything we pick up."
+  ]},
+  "GLASS-CURTAIN": { status:"UNCONFIRMED", chatter:[
+    "Fragment recovered: '...COMMAND-01 is closer than they think...'",
+    "WRAITH: operating quietly out of the Balkans, no confirmed leadership.",
+    "Recommend BLACKVAULT-13 keep this one on the daily watch list."
+  ]},
+  "PALE-ARCHIVE": { status:"WATCHING", chatter:[
+    "VORTEX: Pacific chatter's been climbing for two weeks straight.",
+    "Fragment recovered: '...the archive doesn't forget, and neither do we...'",
+    "Recommend cross-referencing with SYDNEY WATCH before this escalates."
   ]}
 };
 
@@ -535,7 +644,15 @@ const REPLY_BANK = {
   "OBSIDIAN-CIRCLE": ["FROST: they received it. No telling what they'll do with it.", "Delivery confirmed. Recommend watching this one closely now."],
   "CRIMSON-LEDGER": ["TALON: message dropped into their channel. No visible reaction yet.", "Delivery confirmed via a financial back-channel. Silence since."],
   "GHOST-MARKET": ["WRAITH: listing acknowledged the message, nothing more.", "No formal reply — the listing just went quiet after delivery."],
-  "IRON-CHOIR": ["ANCHOR: message received near their recruiting post. No response logged.", "Delivered. LAGOS LINE reports no immediate pushback."]
+  "IRON-CHOIR": ["ANCHOR: message received near their recruiting post. No response logged.", "Delivered. LAGOS LINE reports no immediate pushback."],
+  "OSLO-RELAY": ["FROST: order received and carried out despite the weather.", "Done. Arctic link held steady the whole time."],
+  "MUMBAI-STATION": ["TALON: directive executed, financial feeds re-checked afterward.", "Order carried out. Station stayed clean throughout."],
+  "VOID-BROKER": ["UNVERIFIED SOURCE: message delivered to a moving target. No formal reply.", "Signal acknowledged once, then the route shifted again."],
+  "RED-LANTERN": ["VORTEX: message dropped into their channel. No visible reaction yet.", "Delivery confirmed. Recommend watching this one closely now."],
+  "REYKJAVIK-ECHO": ["FROST: order received, executed from standby without lighting up the post.", "Done. North Atlantic line stayed dark throughout."],
+  "SANTIAGO-CELL": ["TALON: directive carried out quietly, corridor watch resumed after.", "Order executed. Southern cone still calm."],
+  "GLASS-CURTAIN": ["UNVERIFIED SOURCE: message delivered. No formal reply, signal went quiet after.", "Acknowledged once, then silence — typical for this one."],
+  "PALE-ARCHIVE": ["VORTEX: message dropped into the Pacific channel. No visible reaction yet.", "Delivery confirmed. Chatter continues, unaffected."]
 };
 
 const NODE_LABELS = {
@@ -543,12 +660,56 @@ const NODE_LABELS = {
   "SAFEHOUSE-4":"SAFEHOUSE-4 · Rio", "BLACKVAULT-13":"BLACKVAULT-13 · Moscow", "VAULT-13":"VAULT-13 · Singapore",
   "CAIRO-OUTPOST":"CAIRO OUTPOST · Cairo", "SYDNEY-WATCH":"SYDNEY WATCH · Sydney", "LAGOS-LINE":"LAGOS LINE · Lagos",
   "THE-SYNDICATE":"⚠ THE SYNDICATE · rival", "NULL-COLLECTIVE":"⚠ NULL COLLECTIVE · rival", "OBSIDIAN-CIRCLE":"⚠ OBSIDIAN CIRCLE · rival",
-  "CRIMSON-LEDGER":"⚠ CRIMSON LEDGER · rival", "GHOST-MARKET":"⚠ GHOST MARKET · rival", "IRON-CHOIR":"⚠ IRON CHOIR · rival"
+  "CRIMSON-LEDGER":"⚠ CRIMSON LEDGER · rival", "GHOST-MARKET":"⚠ GHOST MARKET · rival", "IRON-CHOIR":"⚠ IRON CHOIR · rival",
+  "OSLO-RELAY":"OSLO RELAY · Oslo", "MUMBAI-STATION":"MUMBAI STATION · Mumbai",
+  "VOID-BROKER":"⚠ VOID BROKER · rival", "RED-LANTERN":"⚠ RED LANTERN · rival",
+  "REYKJAVIK-ECHO":"REYKJAVIK ECHO · Reykjavik", "SANTIAGO-CELL":"SANTIAGO CELL · Santiago",
+  "GLASS-CURTAIN":"⚠ GLASS CURTAIN · rival", "PALE-ARCHIVE":"⚠ PALE ARCHIVE · rival"
 };
 
 const TERRITORY_LABELS = { NA:'North America', SA:'South America', EU:'Europe', AF:'Africa', AS:'Asia', OC:'Oceania' };
 const OPERATION_LABELS = {};
 DieselState.OPERATIONS.forEach(o => OPERATION_LABELS[o.id] = o.name);
+
+// ---------- faction intel: threat assessment system ----------
+// every rival org, cross-referenced against the continent it operates out of (ties into territory control)
+const FACTIONS = {
+  "THE-SYNDICATE":    { region:'AS', threat:74, note:'Deep Hong Kong footprint, disciplined and patient — the biggest known threat to COMMAND-01.' },
+  "NULL-COLLECTIVE":  { region:'NA', threat:88, note:'Zero confirmed history or leadership. The less we know, the higher this sits.' },
+  "OBSIDIAN-CIRCLE":  { region:'AF', threat:61, note:'Has had eyes on COMMAND-01 for weeks. Cross-reference with BLACKVAULT-13.' },
+  "CRIMSON-LEDGER":   { region:'SA', threat:57, note:'Runs shell finance for three cells through the SAFEHOUSE-4 corridor.' },
+  "GHOST-MARKET":     { region:'AS', threat:45, note:'Brokers access to seized nodes on the open market. Opportunistic, not organized.' },
+  "IRON-CHOIR":       { region:'AF', threat:52, note:'Recruiting aggressively out of LAGOS LINE\'s backyard.' },
+  "VOID-BROKER":      { region:'AS', threat:80, note:'No fixed base, relocates constantly. Treat every contact as a trap.' },
+  "RED-LANTERN":      { region:'AS', threat:69, note:'Fast, aggressive expansion — already probing MUMBAI STATION.' },
+  "GLASS-CURTAIN":    { region:'EU', threat:38, note:'Quiet Balkans operation, no confirmed leadership yet — low but rising.' },
+  "PALE-ARCHIVE":     { region:'OC', threat:41, note:'Pacific chatter climbing for two weeks. Watching, not yet engaged.' }
+};
+
+function threatTier(v){
+  if(v >= 75) return 'CRITICAL';
+  if(v >= 55) return 'HIGH';
+  if(v >= 35) return 'ELEVATED';
+  return 'LOW';
+}
+
+function renderFactions(){
+  const grid = document.getElementById('factionGrid');
+  if(!grid) return;
+  const rows = Object.keys(FACTIONS).map(id => {
+    const f = FACTIONS[id];
+    const status = (NODE_DATA[id] || {}).status || 'UNKNOWN';
+    const label = (NODE_LABELS[id] || id).replace('⚠ ', '');
+    return `<div class="faction-card" onclick="selectNode(null,'${id}')">
+      <div class="row1"><span class="fname">${label}</span><span class="fstatus">${status}</span></div>
+      <div class="fregion">Home territory: <b>${TERRITORY_LABELS[f.region]}</b></div>
+      <div class="fregion">${f.note}</div>
+      <div class="threat-bar"><i style="width:${f.threat}%"></i></div>
+      <div class="threat-lbl"><span>THREAT SCORE</span><span class="tier">${f.threat} &middot; ${threatTier(f.threat)}</span></div>
+    </div>`;
+  }).join('');
+  grid.innerHTML = rows;
+}
 
 function selectNode(circle, name){
   DieselSound.type();
@@ -844,6 +1005,7 @@ renderTerritories();
 renderOperations();
 renderHeatBadge();
 renderGarrisonTags();
+renderFactions();
 setInterval(tickDispatches, 1000);
 setInterval(() => {
   document.querySelectorAll('.eta-terr, .eta-op').forEach(el => {
