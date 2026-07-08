@@ -18,8 +18,8 @@
   .map-frame{
     background:
       linear-gradient(180deg, rgba(2,4,3,0.08), rgba(2,4,3,0.1) 55%, rgba(2,4,3,0.3)),
-      radial-gradient(ellipse 130% 95% at 28% 22%, rgba(255,255,255,0.055), transparent 55%),
-      radial-gradient(ellipse 120% 100% at 78% 85%, rgba(0,0,0,0.22), transparent 60%),
+      radial-gradient(ellipse 125% 90% at 26% 20%, rgba(255,255,255,0.09), transparent 52%),
+      radial-gradient(ellipse 115% 95% at 80% 88%, rgba(0,0,0,0.34), transparent 58%),
       url('images/world-network-bg.jpg');
     background-size:cover; background-position:center 42%;
     border:1px solid var(--line); border-radius:10px; padding:14px 14px 6px; overflow:hidden; position:relative;
@@ -171,6 +171,7 @@
   .territory-card .row1{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .territory-card .name{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:14.5px; color:#f2f3f5; }
   .territory-card .pct{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--green); }
+  .region-threat-tag{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:#ff9d9d; letter-spacing:0.5px; margin-bottom:8px; }
   .territory-bar{ height:10px; border-radius:5px; overflow:hidden; display:flex; background:#0a1a0e; border:1px solid var(--line); }
   .territory-bar .seg-diesel{ background:var(--green); }
   .territory-bar .seg-rival{ background:var(--warn); }
@@ -478,7 +479,7 @@
         <span>// TERRITORY CONTROL — GROUND SYSTEM</span>
         <span class="badge" id="mapHeatBadge">HEAT — DORMANT</span>
       </div>
-      <div class="territory-sub">DIESEL influence vs. rival presence per region. Launching a ground operation takes ~3 minutes to settle and raises HEAT — higher exposure lowers success odds on every op until it cools down.</div>
+      <div class="territory-sub">DIESEL influence vs. rival presence per region. Regions with stronger tracked factions (see FACTION INTEL below) hit back harder and blunt your gains — launching a ground operation takes ~3 minutes to settle and raises HEAT, and higher exposure lowers success odds further.</div>
       <div class="territory-grid" id="territoryGrid"></div>
     </div>
 
@@ -505,6 +506,12 @@
 
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/console.js"></script>
@@ -896,13 +903,16 @@ function pendingTerritoryOp(code){
 }
 
 function renderTerritories(){
+  DieselState.checkFactionThreatAlerts();
   const grid = document.getElementById('territoryGrid');
   const territories = DieselState.getTerritories();
   grid.innerHTML = Object.keys(territories).map(code => {
     const t = territories[code];
     const pending = pendingTerritoryOp(code);
+    const regionThreat = DieselState.REGION_THREAT[code] || 40;
     return `<div class="territory-card">
       <div class="row1"><span class="name">${t.name}</span><span class="pct">DIESEL ${t.diesel}%</span></div>
+      <div class="region-threat-tag">&#9888;&#65039; REGIONAL THREAT ${regionThreat} &middot; ${threatTier(regionThreat)}</div>
       <div class="territory-bar">
         <div class="seg-diesel" style="width:${t.diesel}%"></div>
         <div class="seg-rival" style="width:${t.rival}%"></div>

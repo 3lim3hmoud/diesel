@@ -125,6 +125,25 @@
     </div>
 
     <div class="settings-section">
+      <h3>CLOUD &amp; NOTIFICATIONS</h3>
+      <p class="hint" id="cloudHint">Syncs your state to the cloud and lets the World Tick keep running while you're away.</p>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">CLOUD SYNC</div>
+          <div class="ctrl-desc" id="cloudStatusDesc">checking connection…</div>
+        </div>
+        <span class="badge muted" id="cloudBadge">—</span>
+      </div>
+      <div class="row">
+        <div>
+          <div class="ctrl-name">PUSH NOTIFICATIONS</div>
+          <div class="ctrl-desc" id="pushDesc">get a real phone notification for CRITICAL alerts, even with the app closed</div>
+        </div>
+        <button class="btn" id="pushBtn" onclick="enablePush()">ENABLE</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
       <h3>SAVE DATA</h3>
       <p class="hint">Everything on this node — rank, XP, missions, alerts, messages — lives in this browser only.</p>
       <div class="row">
@@ -179,6 +198,12 @@
 
 <script src="js/matrix.js"></script>
 <script src="js/state.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/console.js"></script>
@@ -254,6 +279,61 @@ refreshUI();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
 }
+
+async function refreshCloudUI(){
+  const badge = document.getElementById('cloudBadge');
+  const desc = document.getElementById('cloudStatusDesc');
+  const pushBtn = document.getElementById('pushBtn');
+  const pushDesc = document.getElementById('pushDesc');
+
+  if(!window.DieselCloud || !DieselCloud.isConfigured()){
+    badge.textContent = 'NOT SET UP';
+    desc.textContent = 'no Firebase project configured yet — see SETUP-CLOUD.md. Everything still saves locally.';
+    pushBtn.disabled = true;
+    pushBtn.textContent = 'UNAVAILABLE';
+    return;
+  }
+
+  const online = await DieselCloud.init();
+  badge.textContent = online ? 'CONNECTED' : 'OFFLINE';
+  badge.classList.toggle('muted', !online);
+  desc.textContent = online
+    ? 'this device is linked — the Cloudflare Worker keeps the World Tick running while you are away'
+    : 'could not reach the cloud right now — still saving locally, will retry automatically';
+
+  const perm = await DieselCloud.pushStatus();
+  if(perm === 'granted'){
+    pushBtn.textContent = 'ENABLED';
+    pushBtn.disabled = true;
+    pushDesc.textContent = 'you will get a phone notification for CRITICAL alerts, even with the app closed';
+  } else if(perm === 'denied'){
+    pushBtn.textContent = 'BLOCKED';
+    pushBtn.disabled = true;
+    pushDesc.textContent = 'notifications are blocked in your browser settings for this site';
+  } else if(perm === 'unsupported'){
+    pushBtn.disabled = true;
+    pushBtn.textContent = 'UNSUPPORTED';
+    pushDesc.textContent = 'this browser does not support push notifications';
+  }
+}
+
+async function enablePush(){
+  DieselSound.type();
+  const btn = document.getElementById('pushBtn');
+  btn.disabled = true;
+  btn.textContent = 'LINKING…';
+  const result = await DieselCloud.registerPush();
+  if(result.ok){
+    DieselSound.success();
+    DieselUI.toast('Push notifications enabled', { kind:'ok' });
+  } else {
+    DieselSound.alert();
+    DieselUI.toast('Could not enable notifications (' + result.reason + ')', { kind:'err' });
+  }
+  refreshCloudUI();
+}
+
+refreshCloudUI();
 </script>
 </body>
 </html>

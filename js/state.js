@@ -323,6 +323,34 @@ const DieselState = {
     OC: { name:'Oceania',       diesel:60, rival:5,  neutral:35 }
   },
 
+  // per-region threat score (0-100), derived from the strongest rival faction operating in that region.
+  // drives both ground-op success odds and passive incursion strength/frequency — keep in sync with
+  // the FACTIONS table in map.html if faction rosters change.
+  REGION_THREAT: { NA:88, SA:57, EU:38, AF:61, AS:80, OC:41 },
+  THREAT_CRITICAL: 75,
+
+  // fires a one-time alert per region the first time rival presence crosses 50% in a CRITICAL-threat
+  // region — call this after any territory-affecting action (dispatch tick, ground op, passive incursion).
+  checkFactionThreatAlerts(){
+    const s = this.load();
+    if(!s.territories) return;
+    if(!s.threatAlerted) s.threatAlerted = {};
+    let changed = false;
+    Object.keys(s.territories).forEach(code => {
+      const t = s.territories[code];
+      const regionThreat = this.REGION_THREAT[code] || 40;
+      if(regionThreat >= this.THREAT_CRITICAL && t.rival >= 50 && !s.threatAlerted[code]){
+        s.threatAlerted[code] = true;
+        changed = true;
+        this.addAlert('security', '&#128680;', `CRITICAL — a high-threat faction now holds over half of ${t.name}. Recommend prioritizing a ground operation there.`);
+      } else if((regionThreat < this.THREAT_CRITICAL || t.rival < 50) && s.threatAlerted[code]){
+        delete s.threatAlerted[code]; // reset so it can fire again if it spikes back up later
+        changed = true;
+      }
+    });
+    if(changed) this.save(s);
+  },
+
   getTerritories(){
     const s = this.load();
     if(!s.territories){
@@ -363,11 +391,14 @@ const DieselState = {
     if(!t) return { success:false, text:'Region unrecognized.', alertMsg:'Ground operation failed — unknown sector.' };
     const lead = this._crewName(operativeId);
     const leadNote = lead ? ` ${lead} led the op.` : '';
-    const success = Math.random() < this._successChance(operativeId, 0.72, s.heat);
+    const regionThreat = this.REGION_THREAT[code] || 40;
+    const threatPenalty = regionThreat / 500; // up to -0.2 success chance at threat=100
+    const success = Math.random() < Math.max(0.08, this._successChance(operativeId, 0.72, s.heat) - threatPenalty);
     const swing = 3 + Math.floor(Math.random()*7); // 3-9%
     if(success){
-      t.diesel = Math.min(100, t.diesel + swing);
-      const takeFromRival = Math.min(t.rival, Math.ceil(swing*0.6));
+      const effectiveSwing = Math.max(2, swing - Math.round(regionThreat/40)); // strong factions blunt your gains
+      t.diesel = Math.min(100, t.diesel + effectiveSwing);
+      const takeFromRival = Math.min(t.rival, Math.ceil(effectiveSwing*0.6));
       t.rival -= takeFromRival;
       t.neutral = Math.max(0, 100 - t.diesel - t.rival);
       return {
@@ -376,8 +407,9 @@ const DieselState = {
         alertMsg:`Territory shift — DIESEL influence in ${t.name} rose to ${t.diesel}%`
       };
     } else {
+      const pushback = Math.ceil(swing * (0.4 + regionThreat/250)); // stronger factions push back harder
       t.diesel = Math.max(0, t.diesel - Math.ceil(swing*0.5));
-      t.rival = Math.min(100, t.rival + Math.ceil(swing*0.4));
+      t.rival = Math.min(100, t.rival + pushback);
       t.neutral = Math.max(0, 100 - t.diesel - t.rival);
       return {
         success:false,
@@ -485,15 +517,24 @@ const DieselState = {
     this.resolveDueDispatches(replyBank || this.DEFAULT_REPLY_BANK);
 
     // passive rival incursion — only rolls if gone long enough, and only if territories exist
+    // regions with stronger tracked factions (higher REGION_THREAT) get picked more often and hit harder
     let incursion = null;
     const s2 = this.load();
     if(s2.territories && cappedMin >= 5){
       const chance = Math.min(0.55, cappedMin / 240 + s2.heat / 300);
       if(Math.random() < chance){
         const codes = Object.keys(s2.territories);
-        const code = codes[Math.floor(Math.random() * codes.length)];
+        const weights = codes.map(c => this.REGION_THREAT[c] || 40);
+        const totalW = weights.reduce((a,b) => a+b, 0);
+        let roll = Math.random() * totalW;
+        let code = codes[codes.length - 1];
+        for(let i = 0; i < codes.length; i++){
+          if(roll < weights[i]){ code = codes[i]; break; }
+          roll -= weights[i];
+        }
         const t = s2.territories[code];
-        const swing = 2 + Math.floor(Math.random() * 5);
+        const regionThreat = this.REGION_THREAT[code] || 40;
+        const swing = 2 + Math.floor(Math.random() * 5) + Math.round(regionThreat / 40);
         t.rival = Math.min(100, t.rival + swing);
         t.diesel = Math.max(0, t.diesel - Math.ceil(swing * 0.7));
         t.neutral = Math.max(0, 100 - t.diesel - t.rival);
