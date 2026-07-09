@@ -51,18 +51,18 @@
   .wd-modal .btn.wm-export:hover{ background:rgba(57,255,106,0.18); }
   .wd-modal .wm-roster{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; padding-right:4px; }
   .wd-modal .wm-op{ background:rgba(6,10,7,0.5); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-  .wd-modal .wm-op .wm-op-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer; }
-  .wd-modal .wm-op .avatar{ width:34px; height:34px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    font-family:'Share Tech Mono', monospace; font-weight:700; font-size:12.5px; color:#04150a; }
-  .wd-modal .wm-op .info{ flex:1; min-width:0; }
-  .wd-modal .wm-op .nm2{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:13px; color:#e8ebe9; }
-  .wd-modal .wm-op .meta{ font-family:'Share Tech Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:.5px; margin-top:1px; }
-  .wd-modal .wm-op .status{ font-family:'Share Tech Mono', monospace; font-size:8.5px; letter-spacing:1px; padding:3px 6px; border-radius:10px; border:1px solid var(--line); color:var(--muted); flex-shrink:0; }
-  .wd-modal .wm-op .status.active{ color:var(--green); border-color:var(--green-dim); }
-  .wd-modal .wm-op .caret{ color:var(--muted); font-size:10px; flex-shrink:0; transition:transform .15s ease; }
-  .wd-modal .wm-op.open .caret{ transform:rotate(90deg); }
-  .wd-modal .wm-op .wm-op-detail{ display:none; padding:0 10px 10px 54px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:#c9cdd3; line-height:1.7; border-top:1px dashed var(--line); }
-  .wd-modal .wm-op.open .wm-op-detail{ display:block; }
+  .wd-modal .wm-op-row{ display:flex !important; align-items:center; gap:10px; padding:8px 10px; cursor:pointer; }
+  .wd-modal .wm-op-avatar{ width:34px !important; height:34px !important; min-width:34px; border-radius:6px; flex-shrink:0; display:flex !important; align-items:center; justify-content:center;
+    font-family:'Share Tech Mono', monospace; font-weight:700; font-size:12.5px; color:#04150a; line-height:1; }
+  .wd-modal .wm-op-info{ flex:1 1 auto; min-width:0; }
+  .wd-modal .wm-op-name{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:13px; color:#e8ebe9; line-height:1.4; }
+  .wd-modal .wm-op-meta{ font-family:'Share Tech Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:.5px; margin-top:1px; line-height:1.4; }
+  .wd-modal .wm-op-status{ font-family:'Share Tech Mono', monospace; font-size:8.5px; letter-spacing:1px; padding:3px 6px; border-radius:10px; border:1px solid var(--line); color:var(--muted); flex-shrink:0; white-space:nowrap; }
+  .wd-modal .wm-op-status.wm-op-active{ color:var(--green); border-color:var(--green-dim); }
+  .wd-modal .wm-op-caret{ color:var(--muted); font-size:10px; flex-shrink:0; transition:transform .15s ease; display:inline-block; }
+  .wd-modal .wm-op.open .wm-op-caret{ transform:rotate(90deg); }
+  .wd-modal .wm-op-detail{ display:none; padding:0 10px 10px 54px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:#c9cdd3; line-height:1.7; border-top:1px dashed var(--line); }
+  .wd-modal .wm-op.open .wm-op-detail{ display:block !important; }
   .wd-modal .wm-roster-note{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
 </style>
 </head>
@@ -187,6 +187,14 @@ const CHILD_FIRST = ['Milo','Nour','Suri','Jonas','Amaya','Timo','Lena','Rafi','
 const OP_ROLES = ['Field Operative','Handler','Signals Analyst','Cryptographer','Asset Runner',
   'Surveillance Lead','Cell Commander','Logistics Officer','Counter-Intel Analyst','Courier',
   'Forger','Explosives Tech','Border Fixer','Interrogator','Recruiter'];
+const OP_DEPTS = ['Human Intelligence Division','Signals & Cyber Division','Counter-Intelligence Bureau',
+  'Field Operations Command','Logistics & Support Wing','Special Activities Cell',
+  'Border & Maritime Watch','Analysis & Reporting Desk'];
+const OP_RANKS = ['Junior Operative','Operative','Senior Operative','Field Lead','Section Chief','Deputy Director (Regional)'];
+const OP_EDU = ['Military Academy graduate','Foreign Languages Institute graduate',
+  'Engineering degree (fictional state university)','Law degree (fictional state university)',
+  'Self-taught, recruited from military service','Intelligence Tradecraft Academy graduate'];
+const OP_HOMEBASE_SUFFIX = ['Field Office','Liaison Post','Safehouse Cluster','Regional Desk'];
 const OP_CLEARANCE = ['ALPHA','BETA','GAMMA','OMEGA'];
 const OP_STATUS = ['ACTIVE','DEEP COVER','STANDBY','ACTIVE','ACTIVE'];
 
@@ -227,11 +235,18 @@ function generateOperatives(c, count = 20){
       });
     }
 
+    const yearsOfService = 1 + Math.floor(rng() * 22);
+
     ops.push({
       name: `${first} ${last}`,
       initials: (first[0] + last[0]).toUpperCase(),
       color: `hsl(${hue}, 55%, 62%)`,
       role: pick(OP_ROLES),
+      department: pick(OP_DEPTS),
+      rank: pick(OP_RANKS),
+      yearsOfService,
+      education: pick(OP_EDU),
+      homebase: `${(c.codename || 'SECTOR').split(' ').pop()} ${pick(OP_HOMEBASE_SUFFIX)} ${1 + Math.floor(rng() * 9)}`,
       clearance: pick(OP_CLEARANCE),
       status: pick(OP_STATUS),
       idTag: `${(c.codename || 'SECTOR').split(' ').pop()}-${100 + Math.floor(rng() * 899)}`,
@@ -242,6 +257,44 @@ function generateOperatives(c, count = 20){
     });
   }
   return ops;
+}
+
+// --- Fictional arsenal breakdown generator ---------------------------------
+// Categorized numbers derived deterministically from each country's existing
+// fictional totals (c.arsenal / c.operatives strings). 100% invented — game flavor.
+function parseFirstNumber(str){
+  if(!str) return 0;
+  const m = String(str).replace(/,/g, '').match(/[\d.]+/);
+  return m ? Math.round(parseFloat(m[0])) : 0;
+}
+
+function generateArsenalBreakdown(c){
+  const rng = seededRng(c.name + '::arsenal::' + (c.codename || ''));
+  const droneTotal = parseFirstNumber(c.arsenal) || (200 + Math.floor(rng() * 4000));
+  const armorTotal = (() => {
+    const parts = String(c.arsenal || '').split('·');
+    return parts[1] ? parseFirstNumber(parts[1]) : Math.floor(droneTotal * (0.3 + rng() * 0.5));
+  })();
+  const split = (total, weights) => {
+    const raw = weights.map(w => w * rng() * 0.6 + w * 0.7);
+    const sum = raw.reduce((a, b) => a + b, 0);
+    return raw.map(v => Math.max(0, Math.round((v / sum) * total)));
+  };
+
+  const [reconDrones, combatDrones, surveillancePlatforms] = split(droneTotal, [0.55, 0.25, 0.20]);
+  const [lightArmor, heavyArmor, transport] = split(armorTotal, [0.45, 0.30, 0.25]);
+  const smallArms = 500 + Math.floor(rng() * 8000);
+  const encryptionClusters = 2 + Math.floor(rng() * 18);
+  const cyberUnits = 1 + Math.floor(rng() * 12);
+  const listeningPosts = 1 + Math.floor(rng() * 9);
+  const safehouses = 3 + Math.floor(rng() * 40);
+
+  return {
+    aerial: { reconDrones, combatDrones, surveillancePlatforms },
+    ground: { lightArmor, heavyArmor, transport },
+    equipment: { smallArms, encryptionClusters, cyberUnits },
+    infrastructure: { listeningPosts, safehouses }
+  };
 }
 // ---------------------------------------------------------------------------
 
@@ -283,30 +336,46 @@ function openWorldModal(name){
         Codename: <b>${c.codename || '—'}</b><br>
         Active Operatives: <b>${c.operatives || '—'}</b><br>
         Shadow Budget: <b>${c.shadowBudget || '—'}</b><br>
-        Arsenal: <b>${c.arsenal || '—'}</b><br>
         Secret Facility: <b>${c.secretFacility || '—'}</b>
       </div>
+      <div class="wm-section">// ARSENAL BREAKDOWN <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      ${(() => {
+        const ar = generateArsenalBreakdown(c);
+        return `
+        <div class="wm-fact">
+          <b>Aerial</b> — Recon drones: <b>${ar.aerial.reconDrones.toLocaleString()}</b> · Combat drones: <b>${ar.aerial.combatDrones.toLocaleString()}</b> · Surveillance platforms: <b>${ar.aerial.surveillancePlatforms.toLocaleString()}</b><br>
+          <b>Ground</b> — Light armor: <b>${ar.ground.lightArmor.toLocaleString()}</b> · Heavy armor: <b>${ar.ground.heavyArmor.toLocaleString()}</b> · Transport vehicles: <b>${ar.ground.transport.toLocaleString()}</b><br>
+          <b>Equipment</b> — Small-arms caches: <b>${ar.equipment.smallArms.toLocaleString()}</b> · Encryption clusters: <b>${ar.equipment.encryptionClusters}</b> · Cyber units: <b>${ar.equipment.cyberUnits}</b><br>
+          <b>Infrastructure</b> — Listening posts: <b>${ar.infrastructure.listeningPosts}</b> · Safehouses: <b>${ar.infrastructure.safehouses}</b>
+        </div>`;
+      })()}
       <div class="wm-section">// OPERATIVE ROSTER <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
       <div class="wm-roster">
         ${generateOperatives(c).map(op => `
           <div class="wm-op">
-            <div class="wm-op-row" data-a="toggle-op">
-              <div class="avatar" style="background:${op.color}">${op.initials}</div>
-              <div class="info">
-                <div class="nm2">${op.name} <span style="color:var(--muted); font-weight:400;">— ${op.idTag}</span></div>
-                <div class="meta">${op.role} · CLEARANCE ${op.clearance}</div>
+            <div class="wm-op-row" data-a="toggle-op" style="display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer;">
+              <div class="wm-op-avatar" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; min-width:34px; border-radius:6px; background:${op.color};">${op.initials}</div>
+              <div class="wm-op-info" style="flex:1 1 auto; min-width:0;">
+                <div class="wm-op-name">${op.name} <span style="color:var(--muted); font-weight:400;">— ${op.idTag}</span></div>
+                <div class="wm-op-meta">${op.rank} · ${op.role} · CLEARANCE ${op.clearance}</div>
               </div>
-              <div class="status ${op.status === 'ACTIVE' ? 'active' : ''}">${op.status}</div>
-              <div class="caret">▶</div>
+              <div class="wm-op-status ${op.status === 'ACTIVE' ? 'wm-op-active' : ''}" style="flex-shrink:0;">${op.status}</div>
+              <div class="wm-op-caret" style="flex-shrink:0;">▶</div>
             </div>
             <div class="wm-op-detail">
+              <b>— Job —</b><br>
+              Department: <b>${op.department}</b><br>
+              Rank: <b>${op.rank}</b> · Years of service: <b>${op.yearsOfService}</b><br>
+              Education: <b>${op.education}</b><br>
+              Home base: <b>${op.homebase}</b><br>
+              <b>— Family —</b><br>
               Marital status: <b>${op.married ? 'Married' : 'Single'}</b>${op.spouseName ? ` — spouse: <b>${op.spouseName}</b>` : ''}<br>
               Mother: <b>${op.motherName}</b><br>
               Children: <b>${op.children.length}</b>${op.children.length ? '<br>' + op.children.map(k => `&nbsp;&nbsp;• ${k.name}, age ${k.age} — ${k.inSchool ? 'in school' : 'not yet in school'}`).join('<br>') : ''}
             </div>
           </div>`).join('')}
       </div>
-      <div class="wm-roster-note">Tap a row for family details. Fictional personnel, generated for game flavor — not real individuals.</div>
+      <div class="wm-roster-note">Tap a row for full personnel file. Fictional personnel, generated for game flavor — not real individuals.</div>
       <div class="wm-section">// DID YOU KNOW</div>
       <div class="wm-fact">${c.fact}</div>
       <div class="wm-actions">
@@ -364,15 +433,37 @@ function exportCountryDossier(c){
   txt += line('Intel Rating', c.intelRating);
   txt += line('Active Operatives', c.operatives);
   txt += line('Shadow Budget', c.shadowBudget);
-  txt += line('Arsenal', c.arsenal);
   txt += line('Secret Facility', c.secretFacility);
   txt += `\n`;
 
-  txt += `[ SECTION 3 — OPERATIVE ROSTER (100% FICTIONAL — GENERATED FOR GAME FLAVOR) ]\n`;
+  txt += `[ SECTION 3 — ARSENAL BREAKDOWN (100% FICTIONAL — GAME FLAVOR) ]\n`;
+  txt += `${sub}\n`;
+  const ar = generateArsenalBreakdown(c);
+  txt += `Aerial:\n`;
+  txt += `   Recon drones: ${ar.aerial.reconDrones.toLocaleString()}\n`;
+  txt += `   Combat drones: ${ar.aerial.combatDrones.toLocaleString()}\n`;
+  txt += `   Surveillance platforms: ${ar.aerial.surveillancePlatforms.toLocaleString()}\n`;
+  txt += `Ground:\n`;
+  txt += `   Light armor: ${ar.ground.lightArmor.toLocaleString()}\n`;
+  txt += `   Heavy armor: ${ar.ground.heavyArmor.toLocaleString()}\n`;
+  txt += `   Transport vehicles: ${ar.ground.transport.toLocaleString()}\n`;
+  txt += `Equipment:\n`;
+  txt += `   Small-arms caches: ${ar.equipment.smallArms.toLocaleString()}\n`;
+  txt += `   Encryption clusters: ${ar.equipment.encryptionClusters}\n`;
+  txt += `   Cyber units: ${ar.equipment.cyberUnits}\n`;
+  txt += `Infrastructure:\n`;
+  txt += `   Listening posts: ${ar.infrastructure.listeningPosts}\n`;
+  txt += `   Safehouses: ${ar.infrastructure.safehouses}\n`;
+  txt += `\n`;
+
+  txt += `[ SECTION 4 — OPERATIVE ROSTER (100% FICTIONAL — GENERATED FOR GAME FLAVOR) ]\n`;
   txt += `${sub}\n`;
   generateOperatives(c).forEach((op, i) => {
     txt += `${i + 1}. ${op.name}  [${op.idTag}]\n`;
-    txt += `   Role: ${op.role}   Clearance: ${op.clearance}   Status: ${op.status}\n`;
+    txt += `   Rank: ${op.rank}   Role: ${op.role}   Clearance: ${op.clearance}   Status: ${op.status}\n`;
+    txt += `   Department: ${op.department}\n`;
+    txt += `   Years of service: ${op.yearsOfService}   Education: ${op.education}\n`;
+    txt += `   Home base: ${op.homebase}\n`;
     txt += `   Marital status: ${op.married ? 'Married' : 'Single'}${op.spouseName ? ' (spouse: ' + op.spouseName + ')' : ''}\n`;
     txt += `   Mother: ${op.motherName}\n`;
     txt += `   Children: ${op.children.length}`;
@@ -386,7 +477,7 @@ function exportCountryDossier(c){
   });
   txt += `\n${div}\n`;
   txt += `NOTE: Section 1 reflects real public reference info (not live-updated).\n`;
-  txt += `Sections 2 and 3 are entirely invented for the DIESEL persona game and\n`;
+  txt += `Sections 2, 3 and 4 are entirely invented for the DIESEL persona game and\n`;
   txt += `do NOT represent real military, government, intelligence, or personnel data.\n`;
   txt += `${div}\n`;
 
