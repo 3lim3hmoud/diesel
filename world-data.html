@@ -45,6 +45,25 @@
   .wd-modal .wm-section{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted); margin:14px 0 8px; }
   .wd-modal .wm-fact{ font-size:13.5px; color:#c9cdd3; line-height:1.65; }
   .wd-modal .cm-close{ margin-top:16px; width:100%; }
+  .wd-modal .wm-actions{ display:flex; gap:10px; margin-top:16px; }
+  .wd-modal .wm-actions .btn{ flex:1; margin-top:0; }
+  .wd-modal .btn.wm-export{ background:rgba(57,255,106,0.1); border:1px solid var(--green-dim); color:var(--green); }
+  .wd-modal .btn.wm-export:hover{ background:rgba(57,255,106,0.18); }
+  .wd-modal .wm-roster{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; padding-right:4px; }
+  .wd-modal .wm-op{ background:rgba(6,10,7,0.5); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .wd-modal .wm-op .wm-op-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer; }
+  .wd-modal .wm-op .avatar{ width:34px; height:34px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Share Tech Mono', monospace; font-weight:700; font-size:12.5px; color:#04150a; }
+  .wd-modal .wm-op .info{ flex:1; min-width:0; }
+  .wd-modal .wm-op .nm2{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:13px; color:#e8ebe9; }
+  .wd-modal .wm-op .meta{ font-family:'Share Tech Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:.5px; margin-top:1px; }
+  .wd-modal .wm-op .status{ font-family:'Share Tech Mono', monospace; font-size:8.5px; letter-spacing:1px; padding:3px 6px; border-radius:10px; border:1px solid var(--line); color:var(--muted); flex-shrink:0; }
+  .wd-modal .wm-op .status.active{ color:var(--green); border-color:var(--green-dim); }
+  .wd-modal .wm-op .caret{ color:var(--muted); font-size:10px; flex-shrink:0; transition:transform .15s ease; }
+  .wd-modal .wm-op.open .caret{ transform:rotate(90deg); }
+  .wd-modal .wm-op .wm-op-detail{ display:none; padding:0 10px 10px 54px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:#c9cdd3; line-height:1.7; border-top:1px dashed var(--line); }
+  .wd-modal .wm-op.open .wm-op-detail{ display:block; }
+  .wd-modal .wm-roster-note{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
 </style>
 </head>
 <body>
@@ -151,6 +170,82 @@ function renderWorld(){
     </div>`).join('');
 }
 
+// --- Fictional operative roster generator ---------------------------------
+// Everything here is 100% invented for the DIESEL persona game: names,
+// ranks, family details, avatars (letter-monograms, not photos). No real people.
+const OP_FIRST = ['Dario','Nadia','Kwame','Elin','Ravi','Sana','Bruno','Yara','Milan','Fatou',
+  'Theo','Rin','Omar','Vera','Luca','Amina','Petra','Kian','Zola','Ines',
+  'Dmitri','Layla','Enzo','Noor','Felix','Priya','Kai','Marisol','Idris','Anke',
+  'Marco','Hana','Tobias','Selin','Diego','Aya','Gustav','Lina','Rafael','Sofia',
+  'Aiden','Mira','Boris','Nia','Casimir','Yuki','Otto','Delia','Ravindra','Sabina'];
+const OP_LAST = ['Voss','Marchetti','Odame','Solberg','Kapoor','Farouk','Castellano','Nkemelu',
+  'Brenner','Okafor','Lindqvist','Duarte','Petrov','Osei','Marchand','Haile',
+  'Ferreira','Adeyemi','Novak','Serrano','Bakr','Lindgren','Costa','Amara',
+  'Reyes','Kowalski','Mensah','Tanaka','Almeida','Berger','Nasser','Dubois'];
+const CHILD_FIRST = ['Milo','Nour','Suri','Jonas','Amaya','Timo','Lena','Rafi','Zara','Ewan',
+  'Alina','Kofi','Mika','Sasha','Leo','Yara','Nils','Pia','Amir','Tessa'];
+const OP_ROLES = ['Field Operative','Handler','Signals Analyst','Cryptographer','Asset Runner',
+  'Surveillance Lead','Cell Commander','Logistics Officer','Counter-Intel Analyst','Courier',
+  'Forger','Explosives Tech','Border Fixer','Interrogator','Recruiter'];
+const OP_CLEARANCE = ['ALPHA','BETA','GAMMA','OMEGA'];
+const OP_STATUS = ['ACTIVE','DEEP COVER','STANDBY','ACTIVE','ACTIVE'];
+
+function seededRng(seed){
+  let h = 0;
+  for(let i = 0; i < seed.length; i++){ h = (h * 31 + seed.charCodeAt(i)) >>> 0; }
+  return function(){
+    h ^= h << 13; h >>>= 0;
+    h ^= h >> 17;
+    h ^= h << 5; h >>>= 0;
+    return (h >>> 0) / 4294967296;
+  };
+}
+
+function generateOperatives(c, count = 20){
+  const rng = seededRng(c.name + '::' + (c.codename || ''));
+  const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+  const used = new Set();
+  const ops = [];
+  while(ops.length < count){
+    const first = pick(OP_FIRST), last = pick(OP_LAST);
+    const key = first + last;
+    if(used.has(key)) continue;
+    used.add(key);
+    const hue = Math.floor(rng() * 360);
+
+    const married = rng() < 0.6;
+    const spouseName = married ? `${pick(OP_FIRST)} ${last}` : null;
+    const motherName = `${pick(OP_FIRST)} ${pick(OP_LAST)}`;
+    const numChildren = married ? Math.floor(rng() * 4) : (rng() < 0.15 ? 1 : 0);
+    const children = [];
+    for(let i = 0; i < numChildren; i++){
+      const age = 2 + Math.floor(rng() * 16);
+      children.push({
+        name: pick(CHILD_FIRST),
+        age,
+        inSchool: age >= 5
+      });
+    }
+
+    ops.push({
+      name: `${first} ${last}`,
+      initials: (first[0] + last[0]).toUpperCase(),
+      color: `hsl(${hue}, 55%, 62%)`,
+      role: pick(OP_ROLES),
+      clearance: pick(OP_CLEARANCE),
+      status: pick(OP_STATUS),
+      idTag: `${(c.codename || 'SECTOR').split(' ').pop()}-${100 + Math.floor(rng() * 899)}`,
+      married,
+      spouseName,
+      motherName,
+      children
+    });
+  }
+  return ops;
+}
+// ---------------------------------------------------------------------------
+
+
 function openWorldModal(name){
   const c = WORLD_DATA.find(x => x.name === name);
   if(!c) return;
@@ -191,9 +286,33 @@ function openWorldModal(name){
         Arsenal: <b>${c.arsenal || '—'}</b><br>
         Secret Facility: <b>${c.secretFacility || '—'}</b>
       </div>
+      <div class="wm-section">// OPERATIVE ROSTER <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      <div class="wm-roster">
+        ${generateOperatives(c).map(op => `
+          <div class="wm-op">
+            <div class="wm-op-row" data-a="toggle-op">
+              <div class="avatar" style="background:${op.color}">${op.initials}</div>
+              <div class="info">
+                <div class="nm2">${op.name} <span style="color:var(--muted); font-weight:400;">— ${op.idTag}</span></div>
+                <div class="meta">${op.role} · CLEARANCE ${op.clearance}</div>
+              </div>
+              <div class="status ${op.status === 'ACTIVE' ? 'active' : ''}">${op.status}</div>
+              <div class="caret">▶</div>
+            </div>
+            <div class="wm-op-detail">
+              Marital status: <b>${op.married ? 'Married' : 'Single'}</b>${op.spouseName ? ` — spouse: <b>${op.spouseName}</b>` : ''}<br>
+              Mother: <b>${op.motherName}</b><br>
+              Children: <b>${op.children.length}</b>${op.children.length ? '<br>' + op.children.map(k => `&nbsp;&nbsp;• ${k.name}, age ${k.age} — ${k.inSchool ? 'in school' : 'not yet in school'}`).join('<br>') : ''}
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="wm-roster-note">Tap a row for family details. Fictional personnel, generated for game flavor — not real individuals.</div>
       <div class="wm-section">// DID YOU KNOW</div>
       <div class="wm-fact">${c.fact}</div>
-      <button class="btn cm-close" data-a="close">CLOSE</button>
+      <div class="wm-actions">
+        <button class="btn wm-export" data-a="export">⤓ EXPORT DOSSIER (.TXT)</button>
+        <button class="btn cm-close" data-a="close">CLOSE</button>
+      </div>
     </div>`;
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('in'));
@@ -204,9 +323,82 @@ function openWorldModal(name){
     setTimeout(() => overlay.remove(), 200);
   };
   overlay.addEventListener('click', (e) => {
-    if(e.target === overlay || e.target.closest('[data-a="close"]')) close();
+    if(e.target === overlay || e.target.closest('[data-a="close"]')) return close();
+    if(e.target.closest('[data-a="export"]')) return exportCountryDossier(c);
+    const row = e.target.closest('[data-a="toggle-op"]');
+    if(row) row.closest('.wm-op').classList.toggle('open');
   });
   overlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') close(); });
+}
+
+function exportCountryDossier(c){
+  const line = (label, val) => val ? `${label}: ${val}\n` : '';
+  const div = '='.repeat(60);
+  const sub = '-'.repeat(60);
+
+  let txt = '';
+  txt += `${div}\n`;
+  txt += `DIESEL // WORLD INTEL DATABASE — COUNTRY DOSSIER\n`;
+  txt += `${div}\n`;
+  txt += `${c.flag}  ${c.name.toUpperCase()}  (${c.continent})\n`;
+  txt += `Generated: ${new Date().toISOString()}\n`;
+  txt += `${div}\n\n`;
+
+  txt += `[ SECTION 1 — PUBLIC REFERENCE DATA (real-world, general figures) ]\n`;
+  txt += `${sub}\n`;
+  txt += line('Capital', c.capital);
+  txt += line('Population', c.population);
+  txt += line('Area', c.area);
+  txt += line('Government Type', c.govType);
+  txt += line('Head of State', c.headOfState ? `${c.headOfState}${c.headOfStateTitle ? ' — ' + c.headOfStateTitle : ''}` : '');
+  txt += line('Head of Government', c.headOfGov ? `${c.headOfGov}${c.headOfGovTitle ? ' — ' + c.headOfGovTitle : ''}` : '');
+  txt += line('Intelligence Agency (real)', c.agency);
+  txt += line('Alliances', c.alliance);
+  txt += line('Did You Know', c.fact);
+  txt += `\n`;
+
+  txt += `[ SECTION 2 — CLASSIFIED FILE (100% FICTIONAL GAME LORE — NOT REAL) ]\n`;
+  txt += `${sub}\n`;
+  txt += line('Codename', c.codename);
+  txt += line('Threat Level', c.threatLevel);
+  txt += line('Intel Rating', c.intelRating);
+  txt += line('Active Operatives', c.operatives);
+  txt += line('Shadow Budget', c.shadowBudget);
+  txt += line('Arsenal', c.arsenal);
+  txt += line('Secret Facility', c.secretFacility);
+  txt += `\n`;
+
+  txt += `[ SECTION 3 — OPERATIVE ROSTER (100% FICTIONAL — GENERATED FOR GAME FLAVOR) ]\n`;
+  txt += `${sub}\n`;
+  generateOperatives(c).forEach((op, i) => {
+    txt += `${i + 1}. ${op.name}  [${op.idTag}]\n`;
+    txt += `   Role: ${op.role}   Clearance: ${op.clearance}   Status: ${op.status}\n`;
+    txt += `   Marital status: ${op.married ? 'Married' : 'Single'}${op.spouseName ? ' (spouse: ' + op.spouseName + ')' : ''}\n`;
+    txt += `   Mother: ${op.motherName}\n`;
+    txt += `   Children: ${op.children.length}`;
+    if(op.children.length){
+      txt += '\n';
+      op.children.forEach(k => { txt += `     - ${k.name}, age ${k.age} (${k.inSchool ? 'in school' : 'not yet in school'})\n`; });
+    } else {
+      txt += '\n';
+    }
+    txt += `\n`;
+  });
+  txt += `\n${div}\n`;
+  txt += `NOTE: Section 1 reflects real public reference info (not live-updated).\n`;
+  txt += `Sections 2 and 3 are entirely invented for the DIESEL persona game and\n`;
+  txt += `do NOT represent real military, government, intelligence, or personnel data.\n`;
+  txt += `${div}\n`;
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${c.name.replace(/\s+/g, '_')}_DOSSIER.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 renderFilters();
