@@ -184,6 +184,24 @@ const OP_LAST = ['Voss','Marchetti','Odame','Solberg','Kapoor','Farouk','Castell
   'Reyes','Kowalski','Mensah','Tanaka','Almeida','Berger','Nasser','Dubois'];
 const CHILD_FIRST = ['Milo','Nour','Suri','Jonas','Amaya','Timo','Lena','Rafi','Zara','Ewan',
   'Alina','Kofi','Mika','Sasha','Leo','Yara','Nils','Pia','Amir','Tessa'];
+
+// Arab / Muslim-majority countries in WORLD_DATA get a localized name pool instead.
+const ARAB_MUSLIM_COUNTRIES = new Set([
+  'Egypt','Morocco','Algeria','Saudi Arabia','United Arab Emirates','Jordan','Iraq','Qatar',
+  'Turkey','Iran','Pakistan','Indonesia'
+]);
+const AR_FIRST_MALE = ['Ahmed','Mohamed','Youssef','Khaled','Omar','Hassan','Mahmoud','Karim',
+  'Tarek','Amr','Mostafa','Ibrahim','Ali','Hussein','Walid','Sami','Adel','Fadi','Nabil','Rami',
+  'Mustafa','Bilal','Anas','Zaid','Hamza','Yasser'];
+const AR_FIRST_FEMALE = ['Fatima','Aisha','Mariam','Nour','Sara','Layla','Yasmin','Hana','Rania',
+  'Dina','Salma','Amira','Heba','Mona','Noha','Reem','Dalia','Farida','Sabreen','Ghada',
+  'Jana','Lamis','Rawan','Shorouk','Basma','Israa'];
+const AR_LAST = ['El-Sayed','Abdel Rahman','Hassan','Farouk','Mansour','Khalil','Saleh',
+  'Nour El-Din','Al-Amin','Zaki','Shawky','Kamal','Fahmy','Barakat','Ezzat','Hamdy','Tawfik',
+  'Rashid','Osman','Qassem','Haddad','Suleiman','Karimi','Yildiz','Demir','Aydin'];
+const AR_CHILD_MALE = ['Yusuf','Adam','Karim','Zain','Anas','Hamza','Youssef','Amir','Belal','Sami'];
+const AR_CHILD_FEMALE = ['Lina','Jana','Sara','Nour','Rital','Malak','Salma','Farah','Layan','Aya'];
+
 const OP_ROLES = ['Field Operative','Handler','Signals Analyst','Cryptographer','Asset Runner',
   'Surveillance Lead','Cell Commander','Logistics Officer','Counter-Intel Analyst','Courier',
   'Forger','Explosives Tech','Border Fixer','Interrogator','Recruiter'];
@@ -212,27 +230,44 @@ function seededRng(seed){
 function generateOperatives(c, count = 20){
   const rng = seededRng(c.name + '::' + (c.codename || ''));
   const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+  const localized = ARAB_MUSLIM_COUNTRIES.has(c.name);
   const used = new Set();
   const ops = [];
   while(ops.length < count){
-    const first = pick(OP_FIRST), last = pick(OP_LAST);
+    const gender = rng() < 0.5 ? 'M' : 'F';
+    let first, last;
+    if(localized){
+      first = gender === 'M' ? pick(AR_FIRST_MALE) : pick(AR_FIRST_FEMALE);
+      last = pick(AR_LAST);
+    } else {
+      first = pick(OP_FIRST);
+      last = pick(OP_LAST);
+    }
     const key = first + last;
     if(used.has(key)) continue;
     used.add(key);
     const hue = Math.floor(rng() * 360);
 
     const married = rng() < 0.6;
-    const spouseName = married ? `${pick(OP_FIRST)} ${last}` : null;
-    const motherName = `${pick(OP_FIRST)} ${pick(OP_LAST)}`;
+    let spouseName = null;
+    if(married){
+      if(localized){
+        const spouseFirst = gender === 'M' ? pick(AR_FIRST_FEMALE) : pick(AR_FIRST_MALE);
+        spouseName = `${spouseFirst} ${last}`;
+      } else {
+        spouseName = `${pick(OP_FIRST)} ${last}`;
+      }
+    }
+    const motherName = localized ? `${pick(AR_FIRST_FEMALE)} ${pick(AR_LAST)}` : `${pick(OP_FIRST)} ${pick(OP_LAST)}`;
     const numChildren = married ? Math.floor(rng() * 4) : (rng() < 0.15 ? 1 : 0);
     const children = [];
     for(let i = 0; i < numChildren; i++){
       const age = 2 + Math.floor(rng() * 16);
-      children.push({
-        name: pick(CHILD_FIRST),
-        age,
-        inSchool: age >= 5
-      });
+      const childGender = rng() < 0.5 ? 'M' : 'F';
+      const childName = localized
+        ? (childGender === 'M' ? pick(AR_CHILD_MALE) : pick(AR_CHILD_FEMALE))
+        : pick(CHILD_FIRST);
+      children.push({ name: childName, age, inSchool: age >= 5 });
     }
 
     const yearsOfService = 1 + Math.floor(rng() * 22);
