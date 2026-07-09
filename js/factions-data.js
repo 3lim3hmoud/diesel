@@ -10,6 +10,10 @@ const FACTIONS_DATA = [
     id: 'THE-SYNDICATE', name: 'THE SYNDICATE', region: 'AS', threat: 74, status: 'UNCONFIRMED',
     tagline: 'Deep Hong Kong footprint, disciplined and patient — the biggest known threat to COMMAND-01.',
     history: 'The oldest confirmed rival network on the board. Analysts believe THE SYNDICATE has been operating out of Hong Kong for well over a decade, long before DIESEL existed — which explains the discipline. They never move fast, and they rarely make the same mistake twice.',
+    relations: [
+      { id: 'GHOST-MARKET', type: 'CLIENT', note: 'Buys resold access through GHOST MARKET rather than dealing directly.' },
+      { id: 'NULL-COLLECTIVE', type: 'RIVAL', note: 'Territorial friction reported near two shared corridor nodes.' }
+    ],
     pastOps: [
       { t: 'Quiet buyout of a GRID-77 supplier', r: 'SUCCESS' },
       { t: 'Attempted infiltration of RELAY-9 comms', r: 'FAILED' },
@@ -25,6 +29,10 @@ const FACTIONS_DATA = [
     id: 'NULL-COLLECTIVE', name: 'NULL COLLECTIVE', region: 'NA', threat: 88, status: 'HOSTILE',
     tagline: 'Zero confirmed history or leadership. The less we know, the higher this sits.',
     history: 'No name, no manifesto, no known founder — NULL COLLECTIVE surfaced without warning and immediately posted the highest threat score on the board. Every lead traced back to a dead end three encrypted hops deep. TALON\'s working theory is that "NULL COLLECTIVE" isn\'t one organization at all, but several cells sharing a signature.',
+    relations: [
+      { id: 'THE-SYNDICATE', type: 'RIVAL', note: 'Territorial friction reported near two shared corridor nodes.' },
+      { id: 'VOID-BROKER', type: 'UNCONFIRMED', note: 'Fragmented chatter suggests occasional contact, never verified.' }
+    ],
     pastOps: [
       { t: 'Signal intrusion on a DIESEL relay', r: 'SUCCESS' },
       { t: 'Attempted contact with THE SYNDICATE', r: 'UNCONFIRMED' },
@@ -39,6 +47,9 @@ const FACTIONS_DATA = [
   {
     id: 'OBSIDIAN-CIRCLE', name: 'OBSIDIAN CIRCLE', region: 'AF', threat: 61, status: 'WATCHING',
     tagline: 'Has had eyes on COMMAND-01 for weeks. Cross-reference with BLACKVAULT-13.',
+    relations: [
+      { id: 'IRON-CHOIR', type: 'ALLY', note: 'Loose intel-sharing arrangement across African corridor nodes.' }
+    ],
     history: 'OBSIDIAN CIRCLE doesn\'t strike — it studies. FROST first flagged their surveillance pattern near BLACKVAULT-13 three weeks ago, and the watching hasn\'t stopped since. Whatever they\'re planning, they\'re building a complete picture of DIESEL\'s operational tempo before they move.',
     pastOps: [
       { t: 'Extended surveillance of BLACKVAULT-13', r: 'ONGOING' },
@@ -54,6 +65,10 @@ const FACTIONS_DATA = [
   {
     id: 'CRIMSON-LEDGER', name: 'CRIMSON LEDGER', region: 'SA', threat: 57, status: 'HOSTILE',
     tagline: 'Runs shell finance for three cells through the SAFEHOUSE-4 corridor.',
+    relations: [
+      { id: 'GHOST-MARKET', type: 'CLIENT', note: 'Launders proceeds from GHOST MARKET resale deals.' },
+      { id: 'RED-LANTERN', type: 'ALLY', note: 'Financial backer for at least one Southeast Asia expansion push.' }
+    ],
     history: 'Not a combat organization — a financial one. CRIMSON LEDGER launders funds for at least three other rival cells through shell accounts routed near the SAFEHOUSE-4 corridor. TALON has flagged the pattern but hasn\'t found the source account yet.',
     pastOps: [
       { t: 'Shell account audit evasion', r: 'SUCCESS' },
@@ -69,6 +84,10 @@ const FACTIONS_DATA = [
   {
     id: 'GHOST-MARKET', name: 'GHOST MARKET', region: 'AS', threat: 45, status: 'UNCONFIRMED',
     tagline: 'Brokers access to seized nodes on the open market. Opportunistic, not organized.',
+    relations: [
+      { id: 'THE-SYNDICATE', type: 'SUPPLIER', note: 'Occasionally resells access THE SYNDICATE has already burned.' },
+      { id: 'CRIMSON-LEDGER', type: 'CLIENT', note: 'Routes proceeds through CRIMSON LEDGER for laundering.' }
+    ],
     history: 'Less a faction than a marketplace. GHOST MARKET resells access to nodes other organizations have already burned — including, at one point, a listing for GRID-77 access that DIESEL had already cleaned. Opportunistic, disorganized, and mostly harmless on its own.',
     pastOps: [
       { t: 'Listed (fraudulent) GRID-77 access for sale', r: 'FAILED' },
@@ -84,6 +103,9 @@ const FACTIONS_DATA = [
   {
     id: 'IRON-CHOIR', name: 'IRON CHOIR', region: 'AF', threat: 52, status: 'WATCHING',
     tagline: 'Recruiting aggressively out of LAGOS LINE\'s backyard.',
+    relations: [
+      { id: 'OBSIDIAN-CIRCLE', type: 'ALLY', note: 'Loose intel-sharing arrangement across African corridor nodes.' }
+    ],
     history: 'IRON CHOIR has been running a recruitment drive two blocks from LAGOS LINE, which ANCHOR flagged the moment the pattern became obvious. The concern isn\'t their current numbers — it\'s the trajectory. A dormant relay only stays dormant if nobody\'s watching it.',
     pastOps: [
       { t: 'Recruitment drive near LAGOS LINE', r: 'ONGOING' },
@@ -99,6 +121,9 @@ const FACTIONS_DATA = [
   {
     id: 'VOID-BROKER', name: 'VOID BROKER', region: 'AS', threat: 80, status: 'UNCONFIRMED',
     tagline: 'No fixed base, relocates constantly. Treat every contact as a trap.',
+    relations: [
+      { id: 'NULL-COLLECTIVE', type: 'UNCONFIRMED', note: 'Fragmented chatter suggests occasional contact, never verified.' }
+    ],
     history: 'No known headquarters — VOID BROKER has relocated its entire operation across the Central Asian steppe corridor every few weeks for as long as anyone\'s been tracking them. WRAITH\'s standing order is to treat any contact from this faction as a trap until proven otherwise.',
     pastOps: [
       { t: 'Relocated operation base, third time this quarter', r: 'SUCCESS' },
@@ -114,6 +139,9 @@ const FACTIONS_DATA = [
   {
     id: 'RED-LANTERN', name: 'RED LANTERN', region: 'AS', threat: 69, status: 'HOSTILE',
     tagline: 'Fast, aggressive expansion — already probing MUMBAI STATION.',
+    relations: [
+      { id: 'CRIMSON-LEDGER', type: 'ALLY', note: 'Financial backer for at least one Southeast Asia expansion push.' }
+    ],
     history: 'RED LANTERN expanded out of the Southeast Asia corridor faster than any rival on record, and they\'re not slowing down. MUMBAI STATION has already logged probing activity on its perimeter. VORTEX has recommended reinforcing SYDNEY WATCH\'s southern approach as a precaution.',
     pastOps: [
       { t: 'Rapid territorial expansion, Southeast Asia', r: 'SUCCESS' },

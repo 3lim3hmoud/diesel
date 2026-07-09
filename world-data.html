@@ -434,6 +434,16 @@ function openWorldModal(name){
   const c = WORLD_DATA.find(x => x.name === name);
   if(!c) return;
 
+  if(typeof DieselState !== 'undefined'){
+    const s = DieselState.load();
+    if(!s.countriesViewed) s.countriesViewed = [];
+    if(!s.countriesViewed.includes(name)){
+      s.countriesViewed.push(name);
+      DieselState.save(s);
+      DieselState.checkAchievements?.();
+    }
+  }
+
   const overlay = document.createElement('div');
   overlay.className = 'dui-overlay';
   overlay.innerHTML = `
@@ -645,6 +655,12 @@ function exportCountryDossier(c){
 
 renderFilters();
 renderWorld();
+
+const urlParams = new URLSearchParams(window.location.search);
+const deepLinkCountry = urlParams.get('country');
+if(deepLinkCountry && WORLD_DATA.some(c => c.name === deepLinkCountry)){
+  openWorldModal(deepLinkCountry);
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });

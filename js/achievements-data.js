@@ -3,6 +3,13 @@
    action via DieselState.checkAchievements(). */
 const ACHIEVEMENTS = [
   {
+    id: 'globe_trotter',
+    name: 'GLOBE TROTTER',
+    icon: '&#127760;',
+    desc: 'Open 10 country dossiers in the World Intel Database.',
+    test: s => (s.countriesViewed || []).length >= 10
+  },
+  {
     id: 'first_blood',
     name: 'FIRST BLOOD',
     icon: '&#128298;',

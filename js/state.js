@@ -34,6 +34,7 @@ const DieselState = {
       territories: null,       // lazy-seeded control map, see TERRITORY_DEFAULTS
       opProgress: {},          // { opId: { phase:0, done:false } }
       heat: 0,                 // 0-100 rival attention/exposure meter
+      countriesViewed: [],     // names of countries opened in World Intel Database
       lastVisit: Date.now()    // real-world timestamp used by runWorldTick()
     };
   },

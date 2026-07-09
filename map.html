@@ -722,6 +722,12 @@ function renderFactions(){
   grid.innerHTML = rows;
 }
 
+const NODE_COUNTRY = {
+  'COMMAND-01':'Germany', 'GRID-77':'Japan', 'RELAY-9':'United States', 'SAFEHOUSE-4':'Brazil',
+  'BLACKVAULT-13':'Russia', 'CAIRO-OUTPOST':'Egypt', 'SYDNEY-WATCH':'Australia', 'LAGOS-LINE':'Nigeria',
+  'OSLO-RELAY':'Norway', 'MUMBAI-STATION':'India', 'SANTIAGO-CELL':'Chile'
+};
+
 function selectNode(circle, name){
   DieselSound.type();
   document.querySelectorAll('.node-card').forEach(c => c.classList.remove('highlight'));
@@ -742,7 +748,10 @@ function selectNode(circle, name){
   const garrisonLine = garrison
     ? `<div class="chatter-garrison">&#9875;&#65039; GARRISONED BY ${garrison.nm} &middot; ${garrison.rl}</div>`
     : `<div class="chatter-garrison" style="color:var(--muted);">No fixed garrison — mobile agents only.</div>`;
-  body.innerHTML = garrisonLine + `<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">${statusText}</div>`;
+  const countryLink = NODE_COUNTRY[name]
+    ? `<div class="chatter-garrison"><a href="world-data.html?country=${encodeURIComponent(NODE_COUNTRY[name])}" style="color:var(--green); text-decoration:none;">&#128269; View ${NODE_COUNTRY[name]} in World Intel Database →</a></div>`
+    : '';
+  body.innerHTML = garrisonLine + countryLink + `<div class="chatter-line" style="opacity:1; margin-bottom:6px; color:var(--muted);">${statusText}</div>`;
 
   data.chatter.forEach((line, i) => {
     setTimeout(() => {

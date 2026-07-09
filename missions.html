@@ -134,7 +134,7 @@ function render(){
       <div class="left">
         <div class="title">${m.title}</div>
         <div class="brief">${m.brief}</div>
-        <div class="meta">DIFFICULTY: ${m.diff} &middot; REWARD: ${m.reward}</div>
+        <div class="meta">DIFFICULTY: ${m.diff} &middot; REWARD: ${m.reward}${m.country ? ` &middot; REGION: ${m.country}` : ''}${m.rep ? ` &middot; REP: +${m.rep}` : ''}</div>
       </div>
       <div class="right">${badgeFor(status)}${actionHtml}</div>
     `;
