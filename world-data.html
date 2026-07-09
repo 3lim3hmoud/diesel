@@ -78,7 +78,7 @@
 
     <div class="subhead">
       <h1>// WORLD INTEL DATABASE</h1>
-      <p>REAL-WORLD REFERENCE DATA &middot; GENERAL FIGURES, NOT LIVE-UPDATED</p>
+      <p>REAL-WORLD REFERENCE DATA + FICTIONAL CLASSIFIED FILES (GAME LORE) &middot; GENERAL FIGURES, NOT LIVE-UPDATED</p>
     </div>
 
     <div class="wd-toolbar">
@@ -170,6 +170,26 @@ function openWorldModal(name){
         <div class="wm-stat"><div class="n">${c.capital}</div><div class="l">CAPITAL</div></div>
         <div class="wm-stat"><div class="n">${c.population}</div><div class="l">POPULATION</div></div>
         <div class="wm-stat"><div class="n">${c.area}</div><div class="l">AREA</div></div>
+      </div>
+      <div class="wm-section">// INTEL DOSSIER</div>
+      <div class="wm-fact">
+        <b>${c.govType || '—'}</b><br>
+        ${c.headOfState ? `Head of State: <b>${c.headOfState}</b> — ${c.headOfStateTitle || ''}` : ''}
+        ${c.headOfGov ? `<br>Head of Gov: <b>${c.headOfGov}</b> — ${c.headOfGovTitle || ''}` : ''}
+        ${c.agency ? `<br>Intel Agency: <b>${c.agency}</b>` : ''}
+        ${c.alliance ? `<br>Alliances: <b>${c.alliance}</b>` : ''}
+      </div>
+      <div class="wm-section">// CLASSIFIED FILE <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      <div class="wm-stats">
+        <div class="wm-stat"><div class="n">${c.threatLevel || '—'}</div><div class="l">THREAT LEVEL</div></div>
+        <div class="wm-stat"><div class="n">${c.intelRating || '—'}</div><div class="l">INTEL RATING</div></div>
+      </div>
+      <div class="wm-fact">
+        Codename: <b>${c.codename || '—'}</b><br>
+        Active Operatives: <b>${c.operatives || '—'}</b><br>
+        Shadow Budget: <b>${c.shadowBudget || '—'}</b><br>
+        Arsenal: <b>${c.arsenal || '—'}</b><br>
+        Secret Facility: <b>${c.secretFacility || '—'}</b>
       </div>
       <div class="wm-section">// DID YOU KNOW</div>
       <div class="wm-fact">${c.fact}</div>
