@@ -13,27 +13,55 @@
 <style>
   .wd-toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 28px 18px; }
   .wd-search{ flex:1; min-width:180px; background:rgba(6,10,7,0.6); border:1px solid var(--line); border-radius:8px;
-    padding:10px 14px; color:#e8ebe9; font-family:'Share Tech Mono', monospace; font-size:13px; }
-  .wd-search:focus{ outline:none; border-color:var(--green-dim); }
+    padding:10px 14px; color:#e8ebe9; font-family:'Share Tech Mono', monospace; font-size:13px;
+    transition:border-color .15s ease, box-shadow .15s ease; }
+  .wd-search:focus{ outline:none; border-color:var(--green-dim); box-shadow:0 0 0 3px rgba(57,255,106,0.08); }
   .wd-search::placeholder{ color:var(--muted); }
   .wd-filters{ display:flex; flex-wrap:wrap; gap:6px; }
   .wd-chip{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:1px; padding:8px 12px;
     border-radius:20px; border:1px solid var(--line); color:var(--muted); cursor:pointer; background:transparent; transition:all .15s ease; }
-  .wd-chip:hover{ color:#c9cfd4; }
-  .wd-chip.active{ color:var(--green); border-color:var(--green-dim); background:rgba(57,255,106,0.08); }
+  .wd-chip:hover{ color:#c9cfd4; border-color:rgba(57,255,106,0.35); }
+  .wd-chip.active{ color:#04150a; border-color:var(--green); background:var(--green); font-weight:700;
+    box-shadow:0 0 14px rgba(57,255,106,0.35); }
 
-  .wd-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1px; background:var(--line);
-    margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-  .wd-card{ background:rgba(10,18,12,0.7); padding:16px; cursor:pointer; transition:background .15s ease; }
-  .wd-card:hover{ background:rgba(57,255,106,0.05); }
-  .wd-card:focus-visible{ outline:2px solid var(--green); outline-offset:-2px; }
-  .wd-card .flag{ font-size:26px; margin-bottom:8px; }
-  .wd-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:16px; color:#f2f3f5; }
-  .wd-card .cap{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--green); letter-spacing:.5px; margin-top:2px; }
-  .wd-card .cont{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; margin-top:8px; }
+  .wd-legend{ margin:0 28px 16px; display:flex; flex-wrap:wrap; gap:16px; font-family:'Share Tech Mono', monospace;
+    font-size:9.5px; letter-spacing:.5px; color:var(--muted); }
+  .wd-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .wd-legend .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .wd-legend .dot.real{ background:var(--green); box-shadow:0 0 6px var(--green); }
+  .wd-legend .dot.lore{ background:var(--acid); box-shadow:0 0 6px var(--acid); }
+
+  .wd-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px;
+    margin:0 28px 26px; }
+  .wd-card{ position:relative; background:linear-gradient(155deg, rgba(14,24,16,0.85), rgba(6,10,7,0.75));
+    border:1px solid var(--line); border-radius:10px; padding:18px 16px; cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; overflow:hidden; }
+  .wd-card::before{ content:''; position:absolute; inset:0; border-radius:10px; padding:1px;
+    background:linear-gradient(135deg, rgba(57,255,106,0), rgba(57,255,106,0.35), rgba(212,255,61,0));
+    opacity:0; transition:opacity .18s ease; -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
+  .wd-card:hover{ transform:translateY(-3px); border-color:rgba(57,255,106,0.4); box-shadow:0 10px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(57,255,106,0.08); }
+  .wd-card:hover::before{ opacity:1; }
+  .wd-card:focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
+  .wd-card .flag{ font-size:28px; margin-bottom:10px; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+  .wd-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:16.5px; color:#f2f3f5; letter-spacing:.2px; }
+  .wd-card .cap{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--green); letter-spacing:.5px; margin-top:3px; }
+  .wd-card .cont{ font-family:'Share Tech Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:1.5px; margin-top:10px;
+    padding-top:10px; border-top:1px dashed var(--line); display:flex; align-items:center; justify-content:space-between; }
+  .wd-card .threat-dot{ width:6px; height:6px; border-radius:50%; display:inline-block; }
   .wd-empty{ margin:0 28px 26px; padding:30px; text-align:center; color:var(--muted); font-family:'Share Tech Mono', monospace; font-size:12px; border:1px dashed var(--line); border-radius:8px; }
 
+  .wd-badge{ display:inline-flex; align-items:center; gap:5px; font-family:'Share Tech Mono', monospace;
+    font-size:8.5px; letter-spacing:1px; padding:3px 8px; border-radius:20px; vertical-align:middle;
+    border:1px solid rgba(212,255,61,0.35); color:var(--acid); background:rgba(212,255,61,0.07); text-transform:uppercase; }
+  .wd-badge::before{ content:''; width:5px; height:5px; border-radius:50%; background:var(--acid); box-shadow:0 0 5px var(--acid); }
+
   .dui-modal.wd-modal{ max-width:460px; }
+  .dui-modal.wd-modal{ max-width:460px; position:relative; overflow:hidden; }
+  .wd-modal .wm-stamp{ position:absolute; top:14px; right:-34px; background:rgba(255,59,59,0.12);
+    border-top:1px solid rgba(255,59,59,0.4); border-bottom:1px solid rgba(255,59,59,0.4);
+    color:var(--warn); font-family:'Share Tech Mono', monospace; font-size:9px; letter-spacing:3px;
+    padding:3px 40px; transform:rotate(35deg); pointer-events:none; opacity:0.55; }
   .wd-modal .wm-top{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
   .wd-modal .wm-flag{ font-size:40px; }
   .wd-modal .wm-nm{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:20px; color:#f2f3f5; }
@@ -63,7 +91,13 @@
   .wd-modal .wm-op.open .wm-op-caret{ transform:rotate(90deg); }
   .wd-modal .wm-op-detail{ display:none; padding:0 10px 10px 54px; font-family:'Share Tech Mono', monospace; font-size:10.5px; color:#c9cdd3; line-height:1.7; border-top:1px dashed var(--line); }
   .wd-modal .wm-op.open .wm-op-detail{ display:block !important; }
-  .wd-modal .wm-roster-note{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
+  .wd-modal .wm-siglog{ display:flex; flex-direction:column; gap:5px; margin-bottom:6px; }
+  .wd-modal .wm-sig-row{ display:flex; align-items:center; gap:8px; padding:6px 9px; background:rgba(6,10,7,0.5);
+    border:1px solid var(--line); border-left:2px solid var(--acid); border-radius:4px; font-family:'Share Tech Mono', monospace; }
+  .wd-modal .wm-sig-id{ font-size:9px; color:var(--acid); flex-shrink:0; }
+  .wd-modal .wm-sig-text{ font-size:10.5px; color:#c9cdd3; flex:1; min-width:0; }
+  .wd-modal .wm-sig-meta{ font-size:8.5px; color:var(--muted); flex-shrink:0; white-space:nowrap; }
+  .wd-modal .wm-sig-tag{ color:var(--muted); }
 </style>
 </head>
 <body>
@@ -104,6 +138,10 @@
       <input class="wd-search" id="wdSearch" type="text" placeholder="Search a country or capital…" oninput="renderWorld()">
     </div>
     <div class="wd-toolbar wd-filters" id="wdFilters"></div>
+    <div class="wd-legend">
+      <span><span class="dot real"></span>REAL — public reference data</span>
+      <span><span class="dot lore"></span>GAME LORE — invented for DIESEL</span>
+    </div>
 
     <div class="wd-grid" id="wdGrid"></div>
     <div class="wd-empty" id="wdEmpty" style="display:none;">No matching country found.</div>
@@ -294,6 +332,64 @@ function generateOperatives(c, count = 20){
   return ops;
 }
 
+// --- Fictional budget & facility detail generator ---------------------------
+// Expands each country's existing shadowBudget/secretFacility strings into a
+// breakdown. Purely derived math on invented numbers — 100% game flavor.
+const FACILITY_PURPOSES = ['signal interception','asset debriefing','equipment storage',
+  'operative training','encrypted archive storage','drone maintenance','forged-document printing'];
+const FACILITY_ACCESS = ['ALPHA clearance only','GAMMA clearance and above','OMEGA clearance only','Section Chief approval required'];
+
+function generateBudgetBreakdown(c){
+  const rng = seededRng(c.name + '::budget::' + (c.codename || ''));
+  const total = parseFirstNumber(c.shadowBudget) || (2 + Math.floor(rng() * 80));
+  const split = (weights) => {
+    const raw = weights.map(w => w * rng() * 0.5 + w * 0.75);
+    const sum = raw.reduce((a, b) => a + b, 0);
+    return raw.map(v => Math.round((v / sum) * total * 10) / 10);
+  };
+  const [personnel, equipment, facilities, operations] = split([0.4, 0.25, 0.15, 0.2]);
+  return { total, personnel, equipment, facilities, operations };
+}
+
+function generateFacilityDetail(c){
+  const rng = seededRng(c.name + '::facility::' + (c.codename || ''));
+  const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+  return {
+    name: c.secretFacility || 'Undisclosed Site',
+    purpose: pick(FACILITY_PURPOSES),
+    access: pick(FACILITY_ACCESS),
+    staffCount: 8 + Math.floor(rng() * 140),
+    establishedYearsAgo: 2 + Math.floor(rng() * 30)
+  };
+}
+// ---------------------------------------------------------------------------
+
+// --- Fictional signal-intercept log generator -------------------------------
+// Short flavor-text "intercepts" per country, assembled from template fragments.
+// 100% invented game flavor — not real intelligence, not real events.
+const SIG_SUBJECTS = ['a shipping manifest','an encrypted courier drop','a border checkpoint log',
+  'a satellite uplink burst','a diplomatic cable fragment','a currency exchange record',
+  'a flight manifest','a maritime distress signal','a radio silence window','a supply convoy route'];
+const SIG_VERBS = ['flagged','intercepted','decrypted in part','logged','cross-referenced','traced back to'];
+const SIG_TAGS = ['UNCONFIRMED','LOW CONFIDENCE','PENDING REVIEW','ARCHIVED','FLAVOR ONLY'];
+
+function generateSignalLog(c, count = 4){
+  const rng = seededRng(c.name + '::siglog::' + (c.codename || ''));
+  const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+  const logs = [];
+  for(let i = 0; i < count; i++){
+    const daysAgo = 1 + Math.floor(rng() * 340);
+    logs.push({
+      id: `${(c.codename || 'SECTOR').split(' ').pop()}-LOG-${1000 + Math.floor(rng() * 8999)}`,
+      text: `${pick(SIG_SUBJECTS)} ${pick(SIG_VERBS)} near a ${pick(OP_DEPTS).toLowerCase()} node`,
+      daysAgo,
+      tag: pick(SIG_TAGS)
+    });
+  }
+  return logs.sort((a, b) => a.daysAgo - b.daysAgo);
+}
+// ---------------------------------------------------------------------------
+
 // --- Fictional arsenal breakdown generator ---------------------------------
 // Categorized numbers derived deterministically from each country's existing
 // fictional totals (c.arsenal / c.operatives strings). 100% invented — game flavor.
@@ -342,6 +438,7 @@ function openWorldModal(name){
   overlay.className = 'dui-overlay';
   overlay.innerHTML = `
     <div class="dui-modal wd-modal" role="dialog" aria-modal="true">
+      <div class="wm-stamp">CLASSIFIED — FICTIONAL</div>
       <div class="wm-top">
         <div class="wm-flag">${c.flag}</div>
         <div>
@@ -362,7 +459,7 @@ function openWorldModal(name){
         ${c.agency ? `<br>Intel Agency: <b>${c.agency}</b>` : ''}
         ${c.alliance ? `<br>Alliances: <b>${c.alliance}</b>` : ''}
       </div>
-      <div class="wm-section">// CLASSIFIED FILE <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      <div class="wm-section">// CLASSIFIED FILE <span class="wd-badge">fictional lore</span></div>
       <div class="wm-stats">
         <div class="wm-stat"><div class="n">${c.threatLevel || '—'}</div><div class="l">THREAT LEVEL</div></div>
         <div class="wm-stat"><div class="n">${c.intelRating || '—'}</div><div class="l">INTEL RATING</div></div>
@@ -373,7 +470,26 @@ function openWorldModal(name){
         Shadow Budget: <b>${c.shadowBudget || '—'}</b><br>
         Secret Facility: <b>${c.secretFacility || '—'}</b>
       </div>
-      <div class="wm-section">// ARSENAL BREAKDOWN <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      ${(() => {
+        const b = generateBudgetBreakdown(c);
+        const f = generateFacilityDetail(c);
+        return `
+        <div class="wm-fact">
+          <b>Budget split</b> — Personnel: <b>$${b.personnel}M</b> · Equipment: <b>$${b.equipment}M</b> · Facilities: <b>$${b.facilities}M</b> · Operations: <b>$${b.operations}M</b><br>
+          <b>Facility profile</b> — Purpose: <b>${f.purpose}</b> · Access: <b>${f.access}</b><br>
+          Staff on site: <b>${f.staffCount}</b> · Established: <b>~${f.establishedYearsAgo} yrs ago</b>
+        </div>`;
+      })()}
+      <div class="wm-section">// SIGNAL INTERCEPTS <span class="wd-badge">fictional lore</span></div>
+      <div class="wm-siglog">
+        ${generateSignalLog(c).map(log => `
+          <div class="wm-sig-row">
+            <span class="wm-sig-id">${log.id}</span>
+            <span class="wm-sig-text">${log.text}</span>
+            <span class="wm-sig-meta">T-${log.daysAgo}d · <span class="wm-sig-tag">${log.tag}</span></span>
+          </div>`).join('')}
+      </div>
+      <div class="wm-section">// ARSENAL BREAKDOWN <span class="wd-badge">fictional lore</span></div>
       ${(() => {
         const ar = generateArsenalBreakdown(c);
         return `
@@ -384,7 +500,7 @@ function openWorldModal(name){
           <b>Infrastructure</b> — Listening posts: <b>${ar.infrastructure.listeningPosts}</b> · Safehouses: <b>${ar.infrastructure.safehouses}</b>
         </div>`;
       })()}
-      <div class="wm-section">// OPERATIVE ROSTER <span style="color:var(--muted); letter-spacing:0;">(fictional game lore)</span></div>
+      <div class="wm-section">// OPERATIVE ROSTER <span class="wd-badge">fictional lore</span></div>
       <div class="wm-roster">
         ${generateOperatives(c).map(op => `
           <div class="wm-op">
