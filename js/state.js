@@ -428,6 +428,14 @@ const DieselState = {
 
   getOpProgress(){ return this.load().opProgress || {}; },
 
+  // used by the notification bell (js/notif-bell.js) — counts only the real, dynamically
+  // generated alerts (world tick events, dispatch results, threat warnings...), not the
+  // static demo feed seeded in alerts.html
+  getUnreadAlertCount(){
+    const s = this.load();
+    return (s.alerts || []).filter(a => !s.readAlerts.includes(a.id)).length;
+  },
+
   launchOperationPhase(opId, operativeId){
     const op = this.OPERATIONS.find(o => o.id === opId);
     if(!op) return null;

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // World Intel Database</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .wd-toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 28px 18px; }
+  .wd-search{ flex:1; min-width:180px; background:rgba(6,10,7,0.6); border:1px solid var(--line); border-radius:8px;
+    padding:10px 14px; color:#e8ebe9; font-family:'Share Tech Mono', monospace; font-size:13px; }
+  .wd-search:focus{ outline:none; border-color:var(--green-dim); }
+  .wd-search::placeholder{ color:var(--muted); }
+  .wd-filters{ display:flex; flex-wrap:wrap; gap:6px; }
+  .wd-chip{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:1px; padding:8px 12px;
+    border-radius:20px; border:1px solid var(--line); color:var(--muted); cursor:pointer; background:transparent; transition:all .15s ease; }
+  .wd-chip:hover{ color:#c9cfd4; }
+  .wd-chip.active{ color:var(--green); border-color:var(--green-dim); background:rgba(57,255,106,0.08); }
+
+  .wd-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1px; background:var(--line);
+    margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .wd-card{ background:rgba(10,18,12,0.7); padding:16px; cursor:pointer; transition:background .15s ease; }
+  .wd-card:hover{ background:rgba(57,255,106,0.05); }
+  .wd-card:focus-visible{ outline:2px solid var(--green); outline-offset:-2px; }
+  .wd-card .flag{ font-size:26px; margin-bottom:8px; }
+  .wd-card .nm{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:16px; color:#f2f3f5; }
+  .wd-card .cap{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--green); letter-spacing:.5px; margin-top:2px; }
+  .wd-card .cont{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; margin-top:8px; }
+  .wd-empty{ margin:0 28px 26px; padding:30px; text-align:center; color:var(--muted); font-family:'Share Tech Mono', monospace; font-size:12px; border:1px dashed var(--line); border-radius:8px; }
+
+  .dui-modal.wd-modal{ max-width:460px; }
+  .wd-modal .wm-top{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .wd-modal .wm-flag{ font-size:40px; }
+  .wd-modal .wm-nm{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:20px; color:#f2f3f5; }
+  .wd-modal .wm-cont{ font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--green); letter-spacing:1px; margin-top:2px; }
+  .wd-modal .wm-stats{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .wd-modal .wm-stat{ flex:1; min-width:120px; background:rgba(6,10,7,0.5); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .wd-modal .wm-stat .n{ font-family:'Share Tech Mono', monospace; font-size:14px; color:var(--acid); font-weight:700; }
+  .wd-modal .wm-stat .l{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+  .wd-modal .wm-section{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted); margin:14px 0 8px; }
+  .wd-modal .wm-fact{ font-size:13.5px; color:#c9cdd3; line-height:1.65; }
+  .wd-modal .cm-close{ margin-top:16px; width:100%; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/world</div>
+    <div class="sys-tag" id="wdCount">— NODES</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="wallet.html">WALLET</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="faction.html">FACTIONS</a>
+      <a href="world-data.html" class="active">WORLD</a>
+      <a href="code-vault.html">CODE VAULT</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// WORLD INTEL DATABASE</h1>
+      <p>REAL-WORLD REFERENCE DATA &middot; GENERAL FIGURES, NOT LIVE-UPDATED</p>
+    </div>
+
+    <div class="wd-toolbar">
+      <input class="wd-search" id="wdSearch" type="text" placeholder="Search a country or capital…" oninput="renderWorld()">
+    </div>
+    <div class="wd-toolbar wd-filters" id="wdFilters"></div>
+
+    <div class="wd-grid" id="wdGrid"></div>
+    <div class="wd-empty" id="wdEmpty" style="display:none;">No matching country found.</div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/notif-bell.js"></script>
+<script src="js/world-data.js"></script>
+<script>
+let activeContinent = 'All';
+
+function renderFilters(){
+  const wrap = document.getElementById('wdFilters');
+  const chips = ['All', ...WORLD_CONTINENTS];
+  wrap.innerHTML = chips.map(c =>
+    `<button class="wd-chip ${c === activeContinent ? 'active' : ''}" onclick="setContinent('${c}')">${c.toUpperCase()}</button>`
+  ).join('');
+}
+
+function setContinent(c){
+  activeContinent = c;
+  renderFilters();
+  renderWorld();
+}
+
+function renderWorld(){
+  const q = document.getElementById('wdSearch').value.trim().toLowerCase();
+  const list = WORLD_DATA.filter(c => {
+    const matchesContinent = activeContinent === 'All' || c.continent === activeContinent;
+    const matchesSearch = !q || c.name.toLowerCase().includes(q) || c.capital.toLowerCase().includes(q);
+    return matchesContinent && matchesSearch;
+  });
+
+  document.getElementById('wdCount').textContent = WORLD_DATA.length + ' NODES';
+  const grid = document.getElementById('wdGrid');
+  const empty = document.getElementById('wdEmpty');
+
+  if(!list.length){
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+  grid.innerHTML = list.map(c => `
+    <div class="wd-card" tabindex="0" role="button" aria-label="View ${c.name} details"
+      onclick="openWorldModal('${c.name.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWorldModal('${c.name.replace(/'/g, "\\'")}')}">
+      <div class="flag">${c.flag}</div>
+      <div class="nm">${c.name}</div>
+      <div class="cap">${c.capital}</div>
+      <div class="cont">${c.continent.toUpperCase()}</div>
+    </div>`).join('');
+}
+
+function openWorldModal(name){
+  const c = WORLD_DATA.find(x => x.name === name);
+  if(!c) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'dui-overlay';
+  overlay.innerHTML = `
+    <div class="dui-modal wd-modal" role="dialog" aria-modal="true">
+      <div class="wm-top">
+        <div class="wm-flag">${c.flag}</div>
+        <div>
+          <div class="wm-nm">${c.name}</div>
+          <div class="wm-cont">${c.continent.toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="wm-stats">
+        <div class="wm-stat"><div class="n">${c.capital}</div><div class="l">CAPITAL</div></div>
+        <div class="wm-stat"><div class="n">${c.population}</div><div class="l">POPULATION</div></div>
+        <div class="wm-stat"><div class="n">${c.area}</div><div class="l">AREA</div></div>
+      </div>
+      <div class="wm-section">// DID YOU KNOW</div>
+      <div class="wm-fact">${c.fact}</div>
+      <button class="btn cm-close" data-a="close">CLOSE</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('in'));
+
+  const close = () => {
+    overlay.classList.remove('in');
+    overlay.classList.add('out');
+    setTimeout(() => overlay.remove(), 200);
+  };
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay || e.target.closest('[data-a="close"]')) close();
+  });
+  overlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') close(); });
+}
+
+renderFilters();
+renderWorld();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

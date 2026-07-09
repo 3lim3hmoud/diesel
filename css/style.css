@@ -103,6 +103,22 @@ button{ font-family:inherit; }
 .navbar a:hover{ color:#c9cfd4; background:rgba(57,255,106,0.04); }
 .navbar a.active{ color:var(--green); border-bottom-color:var(--green); background:rgba(57,255,106,0.06); }
 
+.notif-bell{
+  display:flex; align-items:center; justify-content:center;
+  margin-left:auto; padding:0 20px; position:relative;
+  border-bottom:2px solid transparent; flex-shrink:0;
+}
+.notif-bell-ic{ font-size:16px; filter:grayscale(1) brightness(1.4); transition:filter .15s ease; }
+.notif-bell:hover .notif-bell-ic{ filter:none; }
+.notif-bell-badge{
+  position:absolute; top:8px; right:10px;
+  min-width:15px; height:15px; padding:0 3px;
+  border-radius:8px; background:var(--warn); color:#1a0500;
+  font-family:'Share Tech Mono', monospace; font-size:9px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 6px rgba(255,59,59,0.6);
+}
+
 .footer{
   padding:16px 28px;
   font-family:'Share Tech Mono', monospace;

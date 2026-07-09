@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Faction Dossiers</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+<style>
+  .faction-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:1px; background:var(--line); margin:0 28px 26px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .faction-card{ background:rgba(20,7,7,0.55); border:none; border-radius:0; padding:16px; cursor:pointer; transition:background .15s ease; }
+  .faction-card:hover{ background:rgba(255,59,59,0.08); }
+  .faction-card:focus-visible{ outline:2px solid #ff6b6b; outline-offset:-2px; }
+  .faction-card .row1{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .faction-card .fname{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:15px; color:#ff9d9d; letter-spacing:0.5px; }
+  .faction-card .fstatus{ font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); letter-spacing:1px; }
+  .faction-card .fregion{ font-family:'Share Tech Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .faction-card .fregion b{ color:#c3c8cd; }
+  .faction-card .ftag{ font-size:12.5px; color:#a9afb6; line-height:1.5; margin-top:6px; }
+  .threat-bar{ height:8px; border-radius:4px; overflow:hidden; background:#1a0a0a; border:1px solid #3a1616; margin-top:12px; }
+  .threat-bar i{ display:block; height:100%; background:linear-gradient(90deg, #ff9d3d, #ff3b3b); }
+  .threat-lbl{ display:flex; justify-content:space-between; font-family:'Share Tech Mono', monospace; font-size:9.5px; color:var(--muted); margin-top:5px; }
+  .threat-lbl .tier{ color:#ff8080; font-weight:700; }
+
+  /* ---- faction detail modal (reuses .dui-overlay/.dui-modal shell) ---- */
+  .dui-modal.faction-modal{ max-width:500px; }
+  .faction-modal .fm-top{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .faction-modal .fm-ic{ width:56px; height:56px; border-radius:12px; background:#160707; border:1px solid #5a1a1a; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; color:#ff8080; }
+  .faction-modal .fm-nm{ font-family:'Rajdhani', sans-serif; font-weight:800; font-size:19px; color:#f2f3f5; }
+  .faction-modal .fm-meta{ font-family:'Share Tech Mono', monospace; font-size:11px; color:#ff8080; letter-spacing:1px; margin-top:2px; }
+  .faction-modal .fm-tag{ font-size:13px; color:#c9cdd3; line-height:1.6; margin-bottom:14px; font-style:italic; }
+  .faction-modal .fm-threat{ margin-bottom:16px; }
+  .faction-modal .fm-section{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--muted); margin:14px 0 8px; }
+  .faction-modal .fm-history{ font-size:13.5px; color:#a9afb6; line-height:1.65; }
+  .faction-modal .fm-log{ display:flex; flex-direction:column; gap:6px; margin-bottom:4px; }
+  .faction-modal .fm-log-row{ display:flex; justify-content:space-between; gap:10px; font-family:'Share Tech Mono', monospace; font-size:11.5px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .faction-modal .fm-log-row span:first-child{ color:#c3c8cd; }
+  .faction-modal .fm-weak{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .faction-modal .fm-weak li{ font-size:13px; color:#a9afb6; line-height:1.55; padding-left:16px; position:relative; }
+  .faction-modal .fm-weak li::before{ content:'—'; position:absolute; left:0; color:#ff6b6b; }
+  .faction-modal .badge.bad{ background:rgba(255,59,59,0.12); border:1px solid #5a1a1a; color:#ff8080; }
+  .faction-modal .badge.warn2{ background:rgba(255,157,61,0.12); border:1px solid #6a4a1a; color:#ffb870; }
+  .faction-modal .badge.neutral{ background:rgba(120,130,140,0.12); border:1px solid #333; color:#9aa1a8; }
+  .faction-modal .cm-close{ margin-top:14px; width:100%; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/factions</div>
+    <div class="sys-tag" id="factionCount">— NODES</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="wallet.html">WALLET</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="faction.html" class="active">FACTIONS</a>
+      <a href="world-data.html">WORLD</a>
+      <a href="code-vault.html">CODE VAULT</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// FACTION DOSSIERS</h1>
+      <p>THREAT ASSESSMENT &middot; CROSS-REFERENCED AGAINST TERRITORY CONTROL</p>
+    </div>
+
+    <div class="faction-grid" id="factionGrid"></div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/notif-bell.js"></script>
+<script src="js/factions-data.js"></script>
+<script>
+function renderFactionGrid(){
+  const grid = document.getElementById('factionGrid');
+  document.getElementById('factionCount').textContent = FACTIONS_DATA.length + ' NODES';
+  grid.innerHTML = FACTIONS_DATA.map(f => `
+    <div class="faction-card" tabindex="0" role="button" aria-label="View ${f.name} dossier"
+      onclick="openFactionModal('${f.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFactionModal('${f.id}');}">
+      <div class="row1"><span class="fname">${f.name}</span><span class="fstatus">${f.status}</span></div>
+      <div class="fregion">Home territory: <b>${FACTION_REGION_LABELS[f.region]}</b></div>
+      <div class="ftag">${f.tagline}</div>
+      <div class="threat-bar"><i style="width:${f.threat}%"></i></div>
+      <div class="threat-lbl"><span>THREAT SCORE</span><span class="tier">${f.threat} &middot; ${factionThreatTier(f.threat)}</span></div>
+    </div>`).join('');
+}
+
+function resultBadgeClass(r){
+  if(r === 'SUCCESS') return 'bad';       // a rival "success" is bad news for us
+  if(r === 'FAILED') return 'warn2';      // a rival failure — mild good news, still worth flagging
+  return 'neutral';                        // ONGOING / UNCONFIRMED
+}
+
+function openFactionModal(id){
+  const f = FACTIONS_DATA.find(x => x.id === id);
+  if(!f) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'dui-overlay';
+  overlay.innerHTML = `
+    <div class="dui-modal faction-modal" role="dialog" aria-modal="true">
+      <div class="fm-top">
+        <div class="fm-ic">&#9888;</div>
+        <div>
+          <div class="fm-nm">${f.name}</div>
+          <div class="fm-meta">${FACTION_REGION_LABELS[f.region]} &middot; ${f.status}</div>
+        </div>
+      </div>
+      <div class="fm-tag">${f.tagline}</div>
+      <div class="fm-threat">
+        <div class="threat-bar"><i style="width:${f.threat}%"></i></div>
+        <div class="threat-lbl"><span>THREAT SCORE</span><span class="tier">${f.threat} &middot; ${factionThreatTier(f.threat)}</span></div>
+      </div>
+      <div class="fm-section">// BACKGROUND</div>
+      <div class="fm-history">${f.history}</div>
+      <div class="fm-section">// LOGGED ACTIVITY</div>
+      <div class="fm-log">
+        ${f.pastOps.map(op => `<div class="fm-log-row"><span>${op.t}</span><span class="badge ${resultBadgeClass(op.r)}">${op.r}</span></div>`).join('')}
+      </div>
+      <div class="fm-section">// ASSESSED WEAKNESSES</div>
+      <ul class="fm-weak">
+        ${f.weaknesses.map(w => `<li>${w}</li>`).join('')}
+      </ul>
+      <button class="btn cm-close" style="border-color:#5a1a1a; background:rgba(255,59,59,0.08); color:#ff9d9d; margin-top:14px;" onclick="location.href='map.html?node=${f.id}'">CROSS-REFERENCE ON MAP</button>
+      <button class="btn cm-close" data-a="close">CLOSE</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('in'));
+
+  const close = () => {
+    overlay.classList.remove('in');
+    overlay.classList.add('out');
+    setTimeout(() => overlay.remove(), 200);
+  };
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay || e.target.closest('[data-a="close"]')) close();
+  });
+  overlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') close(); });
+}
+
+renderFactionGrid();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

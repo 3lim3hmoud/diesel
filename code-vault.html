@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>DIESEL // Code Vault</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="js/theme.js"></script>
+<style>
+  .cv-toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 28px 14px; }
+  .cv-search{ flex:1; min-width:180px; background:rgba(6,10,7,0.6); border:1px solid var(--line); border-radius:8px;
+    padding:10px 14px; color:#e8ebe9; font-family:'Share Tech Mono', monospace; font-size:13px; }
+  .cv-search:focus{ outline:none; border-color:var(--green-dim); }
+  .cv-search::placeholder{ color:var(--muted); }
+  .cv-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin:0 28px 20px; }
+  .cv-tab{ font-family:'Share Tech Mono', monospace; font-size:10.5px; letter-spacing:1px; padding:8px 14px;
+    border-radius:20px; border:1px solid var(--line); color:var(--muted); cursor:pointer; background:transparent; transition:all .15s ease; }
+  .cv-tab:hover{ color:#c9cfd4; }
+  .cv-tab.active{ color:var(--green); border-color:var(--green-dim); background:rgba(57,255,106,0.08); }
+
+  .cv-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); margin:0 28px 26px;
+    border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .cv-item{ background:rgba(10,18,12,0.7); }
+  .cv-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; cursor:pointer; }
+  .cv-head:hover{ background:rgba(57,255,106,0.04); }
+  .cv-head .left{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .cv-title{ font-family:'Rajdhani', sans-serif; font-weight:700; font-size:15.5px; color:#f2f3f5; }
+  .cv-desc{ font-size:12.5px; color:#a9afb6; line-height:1.4; }
+  .cv-tags{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .cv-lang{ font-family:'Share Tech Mono', monospace; font-size:9.5px; letter-spacing:1px; padding:4px 9px; border-radius:5px; text-transform:uppercase; }
+  .cv-lang.python{ color:#3fa7ff; border:1px solid #1a3a5a; background:rgba(63,167,255,0.1); }
+  .cv-lang.java{ color:#ff9d3d; border:1px solid #5a3a1a; background:rgba(255,157,61,0.1); }
+  .cv-lang.javascript{ color:#f0db4f; border:1px solid #5a531a; background:rgba(240,219,79,0.1); }
+  .cv-chev{ color:var(--muted); font-family:'Share Tech Mono', monospace; transition:transform .2s ease; }
+  .cv-item.open .cv-chev{ transform:rotate(90deg); color:var(--green); }
+  .cv-body{ display:none; padding:0 18px 18px; }
+  .cv-item.open .cv-body{ display:block; }
+  .cv-body pre{ margin:0; border-radius:8px; overflow-x:auto; font-size:12.5px; max-height:420px; }
+  .cv-body pre code.hljs{ padding:16px; background:#0b0f0d !important; }
+  .cv-copy{ margin-top:10px; }
+  .cv-empty{ margin:0 28px 26px; padding:30px; text-align:center; color:var(--muted); font-family:'Share Tech Mono', monospace; font-size:12px; border:1px dashed var(--line); border-radius:8px; }
+</style>
+</head>
+<body>
+<canvas id="matrixRain"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+  <div class="browser-chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url-bar">http://<span>command-node-01.mesh</span>/diesel/vault</div>
+    <div class="sys-tag" id="cvCount">— SNIPPETS</div>
+  </div>
+
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="command.html">COMMAND</a>
+      <a href="crew.html">CREW</a>
+      <a href="missions.html">MISSIONS</a>
+      <a href="wallet.html">WALLET</a>
+      <a href="archive.html">ARCHIVE</a>
+      <a href="messages.html">MESSAGES</a>
+      <a href="alerts.html">ALERTS</a>
+      <a href="map.html">MAP</a>
+      <a href="faction.html">FACTIONS</a>
+      <a href="world-data.html">WORLD</a>
+      <a href="code-vault.html" class="active">CODE VAULT</a>
+      <a href="settings.html">SETTINGS</a>
+    </nav>
+
+    <div class="subhead">
+      <h1>// CODE VAULT</h1>
+      <p>REAL, WORKING CODE SNIPPETS &middot; JAVA &middot; PYTHON &middot; JAVASCRIPT</p>
+    </div>
+
+    <div class="cv-toolbar">
+      <input class="cv-search" id="cvSearch" type="text" placeholder="Search snippets, e.g. 'sort', 'file', 'fetch'…" oninput="renderVault()">
+    </div>
+    <div class="cv-tabs" id="cvTabs"></div>
+
+    <div class="cv-list" id="cvList"></div>
+    <div class="cv-empty" id="cvEmpty" style="display:none;">No matching snippet found.</div>
+
+    <div class="footer">COMMAND SYSTEM // AL-MORADI EL-DIESEL &middot; <b>PERSONA PROJECT</b></div>
+  </div>
+</div>
+
+<script src="js/matrix.js"></script>
+<script src="js/state.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/notif-bell.js"></script>
+<script src="js/code-vault-data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script>
+let activeLang = 'all';
+const openIds = new Set();
+
+function renderTabs(){
+  const wrap = document.getElementById('cvTabs');
+  const tabs = ['all', ...CODE_VAULT_LANGS];
+  wrap.innerHTML = tabs.map(t =>
+    `<button class="cv-tab ${t === activeLang ? 'active' : ''}" onclick="setLang('${t}')">${t.toUpperCase()}</button>`
+  ).join('');
+}
+
+function setLang(lang){
+  activeLang = lang;
+  renderTabs();
+  renderVault();
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+}
+
+function renderVault(){
+  const q = document.getElementById('cvSearch').value.trim().toLowerCase();
+  const list = CODE_VAULT.filter(s => {
+    const matchesLang = activeLang === 'all' || s.lang === activeLang;
+    const matchesSearch = !q || s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q);
+    return matchesLang && matchesSearch;
+  });
+
+  document.getElementById('cvCount').textContent = CODE_VAULT.length + ' SNIPPETS';
+  const wrap = document.getElementById('cvList');
+  const empty = document.getElementById('cvEmpty');
+
+  if(!list.length){
+    wrap.innerHTML = '';
+    wrap.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  wrap.style.display = 'flex';
+  empty.style.display = 'none';
+
+  wrap.innerHTML = list.map(s => `
+    <div class="cv-item ${openIds.has(s.id) ? 'open' : ''}" id="item-${s.id}">
+      <div class="cv-head" onclick="toggleItem('${s.id}')">
+        <div class="left">
+          <div class="cv-title">${s.title}</div>
+          <div class="cv-desc">${s.desc}</div>
+        </div>
+        <div class="cv-tags">
+          <span class="cv-lang ${s.lang}">${s.lang}</span>
+          <span class="badge muted">${s.category}</span>
+          <span class="cv-chev">&#9656;</span>
+        </div>
+      </div>
+      <div class="cv-body">
+        <pre><code class="language-${s.lang}" id="code-${s.id}">${escapeHtml(s.code)}</code></pre>
+        <button class="btn cv-copy" onclick="copySnippet('${s.id}', event)">COPY CODE</button>
+      </div>
+    </div>`).join('');
+
+  // highlight only the open ones (cheap) — closed ones get highlighted lazily when opened
+  openIds.forEach(id => {
+    const el = document.getElementById('code-' + id);
+    if(el && window.hljs) hljs.highlightElement(el);
+  });
+}
+
+function toggleItem(id){
+  const el = document.getElementById('item-' + id);
+  if(!el) return;
+  const willOpen = !el.classList.contains('open');
+  el.classList.toggle('open', willOpen);
+  if(willOpen){
+    openIds.add(id);
+    const codeEl = document.getElementById('code-' + id);
+    if(codeEl && window.hljs && !codeEl.dataset.highlighted) hljs.highlightElement(codeEl);
+  } else {
+    openIds.delete(id);
+  }
+}
+
+function copySnippet(id, evt){
+  evt.stopPropagation();
+  const snippet = CODE_VAULT.find(s => s.id === id);
+  if(!snippet) return;
+  const btn = evt.target;
+  navigator.clipboard.writeText(snippet.code).then(() => {
+    const original = btn.textContent;
+    btn.textContent = 'COPIED ✓';
+    DieselSound && DieselSound.success && DieselSound.success();
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }).catch(() => {
+    DieselUI && DieselUI.toast && DieselUI.toast('Could not copy — select the code manually', { kind:'err' });
+  });
+}
+
+renderTabs();
+renderVault();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>

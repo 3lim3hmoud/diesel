@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diesel-command-v9';
+const CACHE_NAME = 'diesel-command-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,9 @@ const ASSETS = [
   './messages.html',
   './alerts.html',
   './map.html',
+  './faction.html',
+  './world-data.html',
+  './code-vault.html',
   './settings.html',
   './wallet.html',
   './offline.html',
@@ -20,6 +23,10 @@ const ASSETS = [
   './js/ui.js',
   './js/missions-data.js',
   './js/achievements-data.js',
+  './js/factions-data.js',
+  './js/world-data.js',
+  './js/code-vault-data.js',
+  './js/notif-bell.js',
   './js/firebase-config.js',
   './js/cloud-sync.js',
   './manifest.json',
