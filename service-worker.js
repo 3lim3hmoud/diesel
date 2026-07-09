@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diesel-command-v14';
+const CACHE_NAME = 'diesel-command-v15';
 const ASSETS = [
   './',
   './index.html',
